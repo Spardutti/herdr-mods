@@ -59,13 +59,13 @@ export default class AgentsStatus extends View {
       .child(div().flex_none().text_size(11.5).text_color(busy ? color : t.dim).when(busy, (el) => el.font_semibold()).child(LABELS[a.status] ?? since));
   }
 
-  spaceLabel(space, t) {
-    return div().id(`space-${space}`).pt(6).px(10).text_size(11.5).text_color(t.dim).truncate().child(space);
+  spaceLabel(s, t) {
+    return div().id(`space-${s.id}`).pt(6).px(10).text_size(11.5).text_color(t.dim).truncate().child(s.name);
   }
 
   rows(g, t, now) {
     if (g.id !== "idle") return g.members.map((a) => this.row(a, t, now));
-    return g.spaces.flatMap((s) => [this.spaceLabel(s.space, t), ...s.members.map((a) => this.row(a, t, now))]);
+    return g.spaces.flatMap((s) => [this.spaceLabel(s, t), ...s.members.map((a) => this.row(a, t, now))]);
   }
 
   render() {

@@ -12,8 +12,8 @@ export function grouped(list) {
 
 export function bySpace(list) {
   const spaces = new Map();
-  for (const a of list) spaces.set(a.space_name, [...(spaces.get(a.space_name) ?? []), a]);
-  return [...spaces].map(([space, members]) => ({ space, members }));
+  for (const a of list) spaces.set(a.space, [...(spaces.get(a.space) ?? []), a]);
+  return [...spaces].map(([id, members]) => ({ id, name: members[0].space_name, members }));
 }
 
 export function firstNeedingYou(list) {

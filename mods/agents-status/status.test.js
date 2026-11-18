@@ -23,11 +23,19 @@ test("grouped keeps Herdr's order inside a group", () => {
 });
 
 test("bySpace groups agents by space in the order the spaces first appear", () => {
-  const list = [agent("a", "idle", { space_name: "shadowboard" }), agent("b", "idle", { space_name: "herdr-mods" }), agent("c", "idle", { space_name: "shadowboard" })];
+  const list = [agent("a", "idle", { space: "s1", space_name: "shadowboard" }), agent("b", "idle", { space: "s2", space_name: "herdr-mods" }), agent("c", "idle", { space: "s1", space_name: "shadowboard" })];
 
-  const spaces = bySpace(list).map((s) => [s.space, s.members.map((a) => a.address)]);
+  const spaces = bySpace(list).map((s) => [s.name, s.members.map((a) => a.address)]);
 
   assert.deepEqual(spaces, [["shadowboard", ["a", "c"]], ["herdr-mods", ["b"]]]);
+});
+
+test("bySpace keeps two spaces with the same name apart", () => {
+  const list = [agent("a", "idle", { space: "s1", space_name: "herdr-mods" }), agent("b", "idle", { space: "wsl/s2", space_name: "herdr-mods" })];
+
+  const spaces = bySpace(list).map((s) => [s.id, s.name, s.members.map((a) => a.address)]);
+
+  assert.deepEqual(spaces, [["s1", "herdr-mods", ["a"]], ["wsl/s2", "herdr-mods", ["b"]]]);
 });
 
 test("bySpace of no agents is empty", () => {
