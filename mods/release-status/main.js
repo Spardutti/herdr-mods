@@ -62,7 +62,7 @@ export default class ReleaseStatus extends View {
     const s = this.status;
     if (!s) return this.note("Checking…", t.dim);
     if (s.error) return this.note(s.error, t.dim);
-    if (!s.release) return this.note("No develop or dev branch here, so nothing to release.", t.dim);
+    if (!s.release) return this.note("No develop, dev or development branch here, so nothing to release.", t.dim);
     const { from, merges, behind } = s.release;
     return v_flex().gap(8)
       .child(merges.length ? this.waiting(merges, from, t) : this.released(from, t))

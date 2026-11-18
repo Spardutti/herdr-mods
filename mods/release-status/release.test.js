@@ -6,12 +6,12 @@ function fakeGit(answers) {
   return async (args) => answers[args.join(" ")];
 }
 
-function repo({ head = "develop", origin = false, log = "", counts = {}, drift = "0\t0", dev = "develop" } = {}) {
+function repo({ head = "develop", origin = false, log = "", counts = {}, drift = "0\t0", dev = "develop", localDev = true } = {}) {
   const [base, ref] = origin ? ["origin/main", `origin/${dev}`] : ["main", dev];
   const answers = {
     "rev-parse --abbrev-ref HEAD": `${head}\n`,
     "rev-parse --verify -q main": "a\n",
-    ...(dev ? { [`rev-parse --verify -q ${dev}`]: "b\n" } : {}),
+    ...(dev && localDev ? { [`rev-parse --verify -q ${dev}`]: "b\n" } : {}),
     ...(origin ? { "rev-parse --verify -q origin/main": "c\n", [`rev-parse --verify -q origin/${dev}`]: "d\n" } : {}),
     [`log --first-parent --format=%H %s ${base}..${ref}`]: log,
     [`rev-list --no-merges --left-right --count ${base}...${ref}`]: drift,
@@ -42,6 +42,12 @@ test("releaseStatus outside a git repository says so", async () => {
 
 test("releaseStatus in a repo without a dev branch has no release", async () => {
   assert.deepEqual(await releaseStatus(repo({ head: "main", dev: null })), { branch: "main" });
+});
+
+test("releaseStatus finds a dev branch that only exists on origin", async () => {
+  const git = repo({ head: "feat/x", origin: true, dev: "development", localDev: false, log: "h6 Merge PR #6\n", counts: { h6: 1 } });
+
+  assert.deepEqual((await releaseStatus(git)).release, { from: "development", merges: ["Merge PR #6"], behind: 0 });
 });
 
 for (const dev of ["dev", "development"]) {

@@ -5,7 +5,7 @@ export const BASE = "main";
 export const DEV_NAMES = ["develop", "dev", "development"];
 
 async function devBranch(git) {
-  for (const name of DEV_NAMES) if (await hasRef(git, name)) return name;
+  for (const name of DEV_NAMES) if ((await hasRef(git, name)) || (await hasRef(git, `origin/${name}`))) return name;
   return null;
 }
 

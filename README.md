@@ -5,7 +5,7 @@ Mods for the [Herdr](https://herdr.dev) desktop app, plus two helpers for runnin
 | Part | What it does | Runs on |
 | --- | --- | --- |
 | [`agents-status`](#agents-status) | The Agents list grouped by what needs you: **Needs you**, **Working**, **Idle**. F8 jumps to the top one. | any |
-| [`release-status`](#release-status) | What's waiting on `develop` to go to `main`, for the space you're in. | any |
+| [`release-status`](#release-status) | What's waiting on the dev branch to go to `main`, for the space you're in. | any |
 | [`dev-apps`](#dev-apps) | The space's browser apps: running or not, a link, Start and Stop. | Linux or WSL spaces |
 | [`blocked-run`](#blocked-run) | Commands auto mode blocked, or Claude asked you to run, with a **Run it** button. | Linux or WSL spaces |
 | [`resume`](#resume) | Brings each Claude Code chat back after a reboot or crash. | Linux or WSL |
@@ -46,7 +46,7 @@ It leaves out what Herdr's own list has beyond that: pins, sub-agents nested und
 For the space you're in: how many merges the dev branch has that `main` doesn't, with their titles, or **All released**.
 The dev branch is the first of `develop`, `dev` or `development` the repo has.
 Merges of `main` back into it don't count. A red line says when `main` has commits it lacks.
-Repos without a `develop` branch say so. Branches other than yours are read from `origin`, so it's as fresh as your last fetch.
+Repos without any of the three say so. Branches other than yours are read from `origin`, so it's as fresh as your last fetch.
 
 ## dev-apps
 
