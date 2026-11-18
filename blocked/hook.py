@@ -50,14 +50,13 @@ def save(path, terminal, queue):
 
 def after_block(queue, command):
     """The queue with a command auto mode blocked added at the end."""
-    return [*queue, {"command": command, "asked": False, "this_turn": True}]
+    return [*queue, {"command": command, "asked": False}]
 
 
 def after_reply(queue, commands):
-    """The queue after Claude replied: old asks dropped, and this turn's blocked ones too when it asked instead."""
-    kept = [item for item in queue if not item.get("asked") and not (commands and item.get("this_turn"))]
-    blocked = [{"command": item["command"], "asked": False} for item in kept]
-    return blocked + [{"command": command, "asked": True} for command in commands]
+    """The queue after Claude replied: old asks dropped, blocked ones kept unless a new ask starts them."""
+    kept = [item for item in queue if not item.get("asked") and not item["command"].startswith(tuple(commands))]
+    return kept + [{"command": command, "asked": True} for command in commands]
 
 
 def blocked_command(event):
