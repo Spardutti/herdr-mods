@@ -1,0 +1,10 @@
+[Unit]
+Description=Shut down WSL once the Herdr app has been closed for 2 minutes
+
+[Service]
+Environment=PATH=/usr/local/bin:/usr/bin:/bin:/mnt/c/WINDOWS/system32
+ExecStart=%h/projects/personal/herdr-mods/shutdown/herdr-watch.sh
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
