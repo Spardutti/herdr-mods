@@ -61,6 +61,15 @@ class HookTest(unittest.TestCase):
 
         self.assertEqual(list(self.records.iterdir()), [])
 
+    def test_old_session_ending_after_clear_keeps_new_record(self):
+        new = "1c7e3d2f-8e5b-4d2c-af30-6b9e4d8c2a11"
+        run_hook(self.home, start_event(session=new))
+
+        run_hook(self.home, end_event())
+
+        record = json.loads((self.records / "t2p.json").read_text())
+        self.assertEqual(record["session"], new)
+
     def test_session_end_without_record_succeeds(self):
         result = run_hook(self.home, end_event())
 

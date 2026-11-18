@@ -55,8 +55,16 @@ def handle(event, terminal):
     if kind == "SessionStart":
         save(path, {"terminal": terminal, "session": session, "cwd": event.get("cwd", "")})
         prune(terminal)
-    elif kind == "SessionEnd":
-        path.unlink(missing_ok=True)
+    elif kind == "SessionEnd" and recorded_session(path) == session:
+        path.unlink()
+
+
+def recorded_session(path):
+    try:
+        record = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return None
+    return record.get("session") if isinstance(record, dict) else None
 
 
 def resume_target(record):
