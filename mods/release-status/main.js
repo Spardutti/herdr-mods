@@ -1,7 +1,7 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { exec, focused, panes, spaces, theme } from "herdr";
-import { BASE, RELEASE, releaseStatus } from "./release.js";
+import { BASE, releaseStatus } from "./release.js";
 
 // The focused space's folder and machine, as Herdr's changes mod finds them.
 function location() {
@@ -40,33 +40,33 @@ export default class ReleaseStatus extends View {
     return div().text_size(12.5).text_color(color).child(text);
   }
 
-  waiting(merges, t) {
+  waiting(merges, from, t) {
     const color = t.ansi3;
     return v_flex().gap(8).p(12).rounded(10).when(Boolean(tint(color)), (el) => el.bg(tint(color)))
       .child(h_flex().gap(8).items_end()
         .child(div().text_size(22).font_bold().text_color(color).child(String(merges.length)))
         .child(div().flex_1().font_semibold().text_color(t.foreground).child("waiting to release"))
-        .child(div().text_size(11.5).text_color(t.muted).child(`${RELEASE} → ${BASE}`)))
+        .child(div().text_size(11.5).text_color(t.muted).child(`${from} → ${BASE}`)))
       .child(v_flex().gap(5).children(merges.map((m, i) =>
         div().id(`merge-${i}`).truncate().text_size(12.5).text_color(t.muted).child(`· ${m}`))));
   }
 
-  released(t) {
+  released(from, t) {
     return h_flex().gap(8).p(12).rounded(10).items_center().bg(t.raised)
       .child(div().text_color(t.ansi2).font_bold().child("✓"))
       .child(div().flex_1().font_semibold().text_color(t.foreground).child("All released"))
-      .child(div().text_size(11.5).text_color(t.muted).child(`${RELEASE} = ${BASE}`));
+      .child(div().text_size(11.5).text_color(t.muted).child(`${from} = ${BASE}`));
   }
 
   body(t) {
     const s = this.status;
     if (!s) return this.note("Checking…", t.dim);
     if (s.error) return this.note(s.error, t.dim);
-    if (!s.release) return this.note(`No ${RELEASE} branch here, so nothing to release.`, t.dim);
-    const { merges, behind } = s.release;
+    if (!s.release) return this.note("No develop, dev or development branch here, so nothing to release.", t.dim);
+    const { from, merges, behind } = s.release;
     return v_flex().gap(8)
-      .child(merges.length ? this.waiting(merges, t) : this.released(t))
-      .when(behind > 0, (el) => el.child(this.note(`${BASE} has ${plural(behind, "commit")} ${RELEASE} lacks: merge ${BASE} into ${RELEASE}.`, t.blocked)));
+      .child(merges.length ? this.waiting(merges, from, t) : this.released(from, t))
+      .when(behind > 0, (el) => el.child(this.note(`${BASE} has ${plural(behind, "commit")} ${from} lacks: merge ${BASE} into ${from}.`, t.blocked)));
   }
 
   render(cx) {

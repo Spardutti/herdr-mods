@@ -5,8 +5,9 @@ Mods for the [Herdr](https://herdr.dev) desktop app, plus two helpers for runnin
 | Part | What it does | Runs on |
 | --- | --- | --- |
 | [`agents-status`](#agents-status) | The Agents list grouped by what needs you: **Needs you**, **Working**, **Idle**. F8 jumps to the top one. | any |
-| [`release-status`](#release-status) | What's waiting on `develop` to go to `main`, for the space you're in. | any |
+| [`release-status`](#release-status) | What's waiting on the dev branch to go to `main`, for the space you're in. | any |
 | [`dev-apps`](#dev-apps) | The space's browser apps: running or not, a link, Start and Stop. | Linux or WSL spaces |
+| [`blocked-run`](#blocked-run) | Commands auto mode blocked, or Claude asked you to run, with a **Run it** button. | Linux or WSL spaces |
 | [`resume`](#resume) | Brings each Claude Code chat back after a reboot or crash. | Linux or WSL |
 | [`shutdown`](#shutdown) | Shuts WSL down 2 minutes after you close Herdr. | Windows + WSL |
 
@@ -42,9 +43,10 @@ It leaves out what Herdr's own list has beyond that: pins, sub-agents nested und
 
 ## release-status
 
-For the space you're in: how many merges `develop` has that `main` doesn't, with their titles, or **All released**.
-Merges of `main` back into `develop` don't count. A red line says when `main` has commits `develop` lacks.
-Repos without a `develop` branch say so. Branches other than yours are read from `origin`, so it's as fresh as your last fetch.
+For the space you're in: how many merges the dev branch has that `main` doesn't, with their titles, or **All released**.
+The dev branch is the first of `develop`, `dev` or `development` the repo has.
+Merges of `main` back into it don't count. A red line says when `main` has commits it lacks.
+Repos without any of the three say so. Branches other than yours are read from `origin`, so it's as fresh as your last fetch.
 
 ## dev-apps
 
@@ -83,6 +85,27 @@ release on top, apps below.
   ]
 }
 ```
+
+## blocked-run
+
+When auto mode blocks a Bash command, or Claude ends a reply with `! <command>` for you to run, the command shows in a
+**Commands** box for the space you're in. **Run it** types `! <command>` into that Claude: Claude runs it as your own
+command, sees the output and answers. If Claude is busy, it runs when the turn ends. **Dismiss** drops it.
+
+When Claude replies again, the asks you didn't run are dropped; blocked commands stay until you run or dismiss them.
+
+Two parts, with `<repo>` the path of this clone:
+
+1. A Claude Code hook that writes the waiting commands to `~/.config/herdr-blocked/<terminal>.json`. Add to
+   `~/.claude/settings.json`, next to any hooks you have:
+
+   ```json
+   "PermissionDenied": [{ "hooks": [{ "type": "command", "command": "python3 -I '<repo>/blocked/hook.py'", "timeout": 10 }] }],
+   "Stop": [{ "hooks": [{ "type": "command", "command": "python3 -I '<repo>/blocked/hook.py'", "timeout": 10 }] }]
+   ```
+
+2. The `blocked-run` mod. Install it like the others and add a block for it, for example under `apps` in the column below:
+   `{ "id": "commands", "type": "block", "size": { "weight": 1 }, "content": { "mod": "blocked-run" } }`
 
 ## resume
 
@@ -132,9 +155,10 @@ To turn it off: `systemctl --user disable --now herdr-watch.service`.
 ## Tests
 
 ```sh
-node --test mods/
+node --test mods/*/*.test.js
 python3 -m unittest discover -s resume
 python3 -m unittest discover -s shutdown
+python3 -m unittest discover -s blocked
 ```
 
 `dev-apps` and `release-status` are ported from the `dev-apps` and `branch-status` mods in
