@@ -43,8 +43,9 @@ It leaves out what Herdr's own list has beyond that: pins, sub-agents nested und
 
 ## release-status
 
-For the space you're in: how many merges `develop` has that `main` doesn't, with their titles, or **All released**.
-Merges of `main` back into `develop` don't count. A red line says when `main` has commits `develop` lacks.
+For the space you're in: how many merges the dev branch has that `main` doesn't, with their titles, or **All released**.
+The dev branch is the first of `develop`, `dev` or `development` the repo has.
+Merges of `main` back into it don't count. A red line says when `main` has commits it lacks.
 Repos without a `develop` branch say so. Branches other than yours are read from `origin`, so it's as fresh as your last fetch.
 
 ## dev-apps
@@ -154,7 +155,7 @@ To turn it off: `systemctl --user disable --now herdr-watch.service`.
 ## Tests
 
 ```sh
-node --test mods/
+node --test mods/*/*.test.js
 python3 -m unittest discover -s resume
 python3 -m unittest discover -s shutdown
 python3 -m unittest discover -s blocked

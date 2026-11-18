@@ -1,7 +1,13 @@
 import { parseCounts } from "./counts.js";
 
 export const BASE = "main";
-export const RELEASE = "develop";
+// The dev branch's usual names, tried in this order.
+export const DEV_NAMES = ["develop", "dev", "development"];
+
+async function devBranch(git) {
+  for (const name of DEV_NAMES) if (await hasRef(git, name)) return name;
+  return null;
+}
 
 const hasRef = async (git, ref) => (await git(["rev-parse", "--verify", "-q", ref])) !== undefined;
 
@@ -29,11 +35,12 @@ async function behindBy(git, base, ref) {
   return parseCounts((await git(["rev-list", "--no-merges", "--left-right", "--count", `${base}...${ref}`])) ?? "")?.behind ?? 0;
 }
 
-/** develop's merges that main lacks (sync merges dropped), and how many commits main has that develop lacks. */
+/** The dev branch's merges that main lacks (sync merges dropped), and how many commits main has that it lacks. */
 export async function releaseStatus(git) {
   const branch = (await git(["rev-parse", "--abbrev-ref", "HEAD"]))?.trim();
   if (!branch) return { branch: "", error: "Not a git repository." };
-  if (!(await hasRef(git, BASE)) || !(await hasRef(git, RELEASE))) return { branch };
-  const base = await refOf(git, BASE, branch), ref = await refOf(git, RELEASE, branch);
-  return { branch, release: { merges: await unreleased(git, base, ref), behind: await behindBy(git, base, ref) } };
+  const from = (await hasRef(git, BASE)) ? await devBranch(git) : null;
+  if (!from) return { branch };
+  const base = await refOf(git, BASE, branch), ref = await refOf(git, from, branch);
+  return { branch, release: { from, merges: await unreleased(git, base, ref), behind: await behindBy(git, base, ref) } };
 }
