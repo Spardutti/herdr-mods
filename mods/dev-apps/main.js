@@ -38,7 +38,8 @@ export default class DevApps extends View {
     this.busy = true;
     cx.spawn(async (cx) => {
       const { sh, read } = machineOf(on);
-      const next = this.project === undefined ? await loadProject(sh, read, cwd) : this.project && (await pollProject(sh, this.project, Date.now()));
+      const loaded = this.project === undefined ? await loadProject(sh, read, cwd) : this.project;
+      const next = loaded && (await pollProject(sh, loaded, Date.now()));
       if (key === this.key) this.project = next;
       this.busy = false;
       cx.notify();
