@@ -30,7 +30,16 @@ const project = (more = {}) => ({
 test("loadProject finds the project's browser apps and its docker launcher", async () => {
   const { sh, read } = shadowboard();
 
-  assert.deepEqual(await loadProject(sh, read, `${ROOT}/src`), project());
+  const services = [{ name: "web", state: "stopped" }, { name: "db", state: "stopped" }];
+  assert.deepEqual(await loadProject(sh, read, `${ROOT}/src`), project({ services, startedAt: undefined, stoppingAt: undefined }));
+});
+
+test("loadProject reports an app that is already listening", async () => {
+  const { sh, read } = shadowboard({ [LISTENING.join(" ")]: "LISTEN 0 4096 0.0.0.0:6004 0.0.0.0:*" });
+
+  const loaded = await loadProject(sh, read, ROOT);
+
+  assert.deepEqual(loaded.listening, [6004]);
 });
 
 test("loadProject for a project with no browser app in dev-ports returns null", async () => {
