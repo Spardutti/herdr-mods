@@ -29,8 +29,8 @@ export async function loadProject(sh, read, cwd) {
   if (!apps.length) return null;
   const launcher = launcherFor(await sourcesOf(sh, read, root), apps.map((app) => app.port));
   const project = { name, root, apps, launcher, listening: [] };
-  if (launcher?.kind !== "docker") return project;
-  return { ...project, serviceNames: serviceNames(await sh(COMPOSE_SERVICES, root)) };
+  if (launcher?.kind !== "docker") return pollProject(sh, project, Date.now());
+  return pollProject(sh, { ...project, serviceNames: serviceNames(await sh(COMPOSE_SERVICES, root)) }, Date.now());
 }
 
 /** The project with fresh listening ports and container states; clears a finished start or stop. */
