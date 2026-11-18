@@ -55,13 +55,19 @@ class HookTest(unittest.TestCase):
 
         self.assertEqual(self.queue(), [{"command": "git push origin main", "asked": True}])
 
-    def test_a_new_reply_drops_old_asks_and_keeps_blocked_commands(self):
+    def test_a_new_reply_drops_the_asks_nobody_ran(self):
         self.run_hook(stopped("! git fetch"))
-        self.run_hook(denied("gh pr merge 50"))
 
         self.run_hook(stopped("! git pull"))
 
-        self.assertEqual(self.queue(), [{"command": "gh pr merge 50", "asked": False}, {"command": "git pull", "asked": True}])
+        self.assertEqual(self.queue(), [{"command": "git pull", "asked": True}])
+
+    def test_a_new_reply_keeps_blocked_commands(self):
+        self.run_hook(denied("gh pr merge 50"))
+
+        self.run_hook(stopped("Done."))
+
+        self.assertEqual(self.queue(), [{"command": "gh pr merge 50", "asked": False}])
 
     def test_a_reply_with_nothing_waiting_deletes_the_file(self):
         self.run_hook(stopped("! git fetch"))
@@ -84,6 +90,26 @@ class HookTest(unittest.TestCase):
         self.run_hook(denied("git push"), terminal="../x")
 
         self.assertFalse(self.file.parent.exists())
+
+    def test_a_bad_entry_in_the_file_does_not_break_the_next_reply(self):
+        self.file.parent.mkdir(parents=True)
+        self.file.write_text(json.dumps({"terminal": "t2p", "queue": ["git push"]}))
+
+        result = self.run_hook(stopped("! ls"))
+
+        self.assertEqual((result.returncode, self.queue()), (0, [{"command": "ls", "asked": True}]))
+
+    def test_commands_blocked_at_the_same_moment_are_all_kept(self):
+        env = {"HOME": str(self.home), "PATH": os.environ["PATH"], "HC_TERMINAL_ID": "t2p"}
+        hooks = [subprocess.Popen([sys.executable, "-I", str(HOOK)], stdin=subprocess.PIPE, env=env, text=True,
+                                  stderr=subprocess.DEVNULL) for _ in range(12)]
+        for n, hook in enumerate(hooks):
+            hook.stdin.write(json.dumps(denied(f"echo {n}")))
+            hook.stdin.close()
+        for hook in hooks:
+            hook.wait()
+
+        self.assertEqual(sorted(i["command"] for i in self.queue()), sorted(f"echo {n}" for n in range(12)))
 
 
 if __name__ == "__main__":

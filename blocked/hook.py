@@ -1,7 +1,9 @@
+import fcntl
 import json
 import os
 import re
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 # -I drops this folder from the import path; asked.py lives beside this file.
@@ -16,20 +18,32 @@ def queue_path(terminal):
     return Path.home() / ".config" / "herdr-blocked" / f"{terminal}.json"
 
 
+# Hooks for parallel tool calls, and the Herdr box, update the same file: one at a time.
+@contextmanager
+def locked(folder):
+    folder.mkdir(parents=True, exist_ok=True)
+    with open(folder / ".lock", "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        yield
+
+
+def is_item(item):
+    return isinstance(item, dict) and isinstance(item.get("command"), str)
+
+
 def load(path):
     try:
         queue = json.loads(path.read_text()).get("queue")
     except (OSError, ValueError, AttributeError):
         return []
-    return queue if isinstance(queue, list) else []
+    return [item for item in queue if is_item(item)] if isinstance(queue, list) else []
 
 
 def save(path, terminal, queue):
     if not queue:
         path.unlink(missing_ok=True)
         return
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temp = path.with_suffix(".tmp")
+    temp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
     temp.write_text(json.dumps({"terminal": terminal, "queue": queue}) + "\n")
     temp.replace(path)
 
@@ -58,10 +72,13 @@ def handle(event, terminal):
     if kind == "PermissionDenied":
         command = blocked_command(event)
         if command:
-            save(path, terminal, after_block(load(path), command))
+            with locked(path.parent):
+                save(path, terminal, after_block(load(path), command))
     elif kind == "Stop":
         reply = event.get("last_assistant_message")
-        save(path, terminal, after_reply(load(path), asked_commands(reply if isinstance(reply, str) else "")))
+        asks = asked_commands(reply if isinstance(reply, str) else "")
+        with locked(path.parent):
+            save(path, terminal, after_reply(load(path), asks))
 
 
 def main():
