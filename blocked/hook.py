@@ -54,8 +54,8 @@ def after_block(queue, command):
 
 
 def after_reply(queue, commands):
-    """The queue after Claude replied: its old unrun asks dropped, blocked ones kept, the new asks added."""
-    kept = [item for item in queue if not item.get("asked")]
+    """The queue after Claude replied: old asks dropped, blocked ones kept unless a new ask starts them."""
+    kept = [item for item in queue if not item.get("asked") and not item["command"].startswith(tuple(commands))]
     return kept + [{"command": command, "asked": True} for command in commands]
 
 

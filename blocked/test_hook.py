@@ -69,6 +69,28 @@ class HookTest(unittest.TestCase):
 
         self.assertEqual(self.queue(), [{"command": "gh pr merge 50", "asked": False}])
 
+    def test_an_ask_replaces_a_blocked_command_it_starts(self):
+        self.run_hook(denied("gh workflow run build.yml && sleep 8"))
+
+        self.run_hook(stopped("! gh workflow run build.yml"))
+
+        self.assertEqual(self.queue(), [{"command": "gh workflow run build.yml", "asked": True}])
+
+    def test_an_ask_replaces_a_blocked_command_from_an_earlier_reply(self):
+        self.run_hook(denied("gh workflow run build.yml && sleep 8"))
+        self.run_hook(stopped("Tests ran."))
+
+        self.run_hook(stopped("! gh workflow run build.yml"))
+
+        self.assertEqual(self.queue(), [{"command": "gh workflow run build.yml", "asked": True}])
+
+    def test_an_ask_keeps_an_unrelated_blocked_command(self):
+        self.run_hook(denied("gh pr merge 50 --squash"))
+
+        self.run_hook(stopped("! npm test"))
+
+        self.assertEqual(self.queue(), [{"command": "gh pr merge 50 --squash", "asked": False}, {"command": "npm test", "asked": True}])
+
     def test_a_reply_with_nothing_waiting_deletes_the_file(self):
         self.run_hook(stopped("! git fetch"))
 
