@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { age, displayName, firstNeedingYou, grouped, track } from "./status.js";
+import { age, bySpace, displayName, firstNeedingYou, grouped, track } from "./status.js";
 
 const agent = (address, status, extra = {}) => ({ address, status, title: "", tab_name: "1", ...extra });
 
@@ -20,6 +20,26 @@ test("grouped keeps Herdr's order inside a group", () => {
   const list = [agent("x", "working"), agent("y", "working")];
 
   assert.deepEqual(grouped(list)[0].members.map((a) => a.address), ["x", "y"]);
+});
+
+test("bySpace groups agents by space in the order the spaces first appear", () => {
+  const list = [agent("a", "idle", { space: "s1", space_name: "shadowboard" }), agent("b", "idle", { space: "s2", space_name: "herdr-mods" }), agent("c", "idle", { space: "s1", space_name: "shadowboard" })];
+
+  const spaces = bySpace(list).map((s) => [s.name, s.members.map((a) => a.address)]);
+
+  assert.deepEqual(spaces, [["shadowboard", ["a", "c"]], ["herdr-mods", ["b"]]]);
+});
+
+test("bySpace keeps two spaces with the same name apart", () => {
+  const list = [agent("a", "idle", { space: "s1", space_name: "herdr-mods" }), agent("b", "idle", { space: "wsl/s2", space_name: "herdr-mods" })];
+
+  const spaces = bySpace(list).map((s) => [s.id, s.name, s.members.map((a) => a.address)]);
+
+  assert.deepEqual(spaces, [["s1", "herdr-mods", ["a"]], ["wsl/s2", "herdr-mods", ["b"]]]);
+});
+
+test("bySpace of no agents is empty", () => {
+  assert.deepEqual(bySpace([]), []);
 });
 
 for (const [ms, text] of [[59_999, "<1m"], [60_000, "1m"], [3_599_999, "59m"], [3_600_000, "1h"], [86_399_999, "23h"], [86_400_000, "1d"]]) {
