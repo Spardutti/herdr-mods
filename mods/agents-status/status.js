@@ -10,6 +10,12 @@ export function grouped(list) {
     .filter((g) => g.members.length);
 }
 
+export function bySpace(list) {
+  const spaces = new Map();
+  for (const a of list) spaces.set(a.space_name, [...(spaces.get(a.space_name) ?? []), a]);
+  return [...spaces].map(([space, members]) => ({ space, members }));
+}
+
 export function firstNeedingYou(list) {
   return grouped(list).find((g) => g.id === "needs")?.members[0] ?? null;
 }
