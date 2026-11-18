@@ -56,7 +56,7 @@ def handle(event, terminal):
         save(path, {"terminal": terminal, "session": session, "cwd": event.get("cwd", "")})
         prune(terminal)
     elif kind == "SessionEnd" and recorded_session(path) == session:
-        path.unlink()
+        path.unlink(missing_ok=True)
 
 
 def recorded_session(path):

@@ -1,3 +1,4 @@
+import importlib.util
 import json
 import os
 import subprocess
@@ -5,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 HOOK = Path(__file__).with_name("hook.py")
 SESSION = "0b6f2c1e-7d4a-4c1b-9e2f-5a8d3c7b1f00"
@@ -69,6 +71,23 @@ class HookTest(unittest.TestCase):
 
         record = json.loads((self.records / "t2p.json").read_text())
         self.assertEqual(record["session"], new)
+
+    def test_session_end_when_record_vanishes_before_delete_succeeds(self):
+        spec = importlib.util.spec_from_file_location("resume_hook", HOOK)
+        hook = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(hook)
+        path = self.records / "t2p.json"
+
+        def taken_meanwhile(record):
+            record.unlink()
+            return SESSION
+
+        with mock.patch.dict(os.environ, {"HOME": str(self.home)}):
+            run_hook(self.home, start_event())
+            with mock.patch.object(hook, "recorded_session", taken_meanwhile):
+                hook.handle(end_event(), "t2p")
+
+        self.assertFalse(path.exists())
 
     def test_session_end_without_record_succeeds(self):
         result = run_hook(self.home, end_event())
