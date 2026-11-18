@@ -25,17 +25,46 @@ export function forSpace(waiting, addresses, machine) {
   return waiting.filter((w) => shown.has(machine ? `${machine}/${w.terminal}` : w.terminal));
 }
 
-/** A terminal's queue in the record file's shape. */
-export function queueOf(waiting, terminal) {
-  return waiting.filter((w) => w.terminal === terminal).map(({ command, asked }) => ({ command, asked }));
-}
-
 /** What Run types into Claude: shell mode runs it as the user's own command. */
 export function bangLine(command) {
   return `! ${command}`;
 }
 
-/** The terminal's queue without the item at `index`, to write back after Run or Dismiss. */
-export function withoutItem(queue, index) {
-  return queue.filter((_, i) => i !== index);
+// Run on the terminal's machine as `python3 -I -c DROP_SCRIPT <terminal> <command>`: removes the first
+// entry with that command from the file as it is now, under the lock the hook takes too.
+export const DROP_SCRIPT = `
+import fcntl, json, os, sys, pathlib
+terminal, command = sys.argv[1], sys.argv[2]
+folder = pathlib.Path.home() / ".config" / "herdr-blocked"
+folder.mkdir(parents=True, exist_ok=True)
+path = folder / (terminal + ".json")
+with open(folder / ".lock", "w") as lock:
+    fcntl.flock(lock, fcntl.LOCK_EX)
+    try:
+        queue = json.loads(path.read_text()).get("queue") or []
+    except (OSError, ValueError, AttributeError):
+        sys.exit(0)
+    hits = [i for i, item in enumerate(queue) if isinstance(item, dict) and item.get("command") == command]
+    if hits:
+        del queue[hits[0]]
+    if queue:
+        temp = folder / (path.name + "." + str(os.getpid()) + ".tmp")
+        temp.write_text(json.dumps({"terminal": terminal, "queue": queue}) + "\\n")
+        temp.replace(path)
+    else:
+        path.unlink(missing_ok=True)
+`;
+
+/** Types the command in with `send`, and only once that worked removes it with `drop`. */
+export async function runThenDrop(send, drop, item) {
+  const result = await send(item).catch(() => null);
+  if (result?.code !== 0) return false;
+  await drop(item);
+  return true;
+}
+
+/** Tells whether a check of the file started after the last Run or Dismiss, so an older one can't bring a card back. */
+export function newTracker() {
+  let changes = 0;
+  return { begin: () => changes, change: () => { changes += 1; }, isFresh: (seen) => seen === changes };
 }

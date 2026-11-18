@@ -1,11 +1,9 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { exec, hc, panes, run, settings, spaces, theme } from "herdr";
-import { bangLine, forSpace, parseWaiting, queueOf, withoutItem } from "./waiting.js";
+import { checking, exec, hc, notify, panes, run, settings, spaces, theme } from "herdr";
+import { DROP_SCRIPT, bangLine, forSpace, newTracker, parseWaiting, runThenDrop } from "./waiting.js";
 
 const READ_ALL = 'cat "$HOME"/.config/herdr-blocked/*.json 2>/dev/null';
-// The terminal id and the record arrive as $1 and $2, never inside the script.
-const WRITE_ONE = 'f="$HOME/.config/herdr-blocked/$1.json"; if [ -z "$2" ]; then rm -f "$f"; else printf "%s\\n" "$2" > "$f.tmp" && mv "$f.tmp" "$f"; fi';
 
 function currentSpace() {
   const space = spaces().find((s) => s.active);
@@ -17,6 +15,8 @@ function currentSpace() {
 export default class BlockedRun extends View {
   init(_props, cx) {
     this.waiting = {};
+    this.tracker = newTracker();
+    if (checking()) return;
     this.load(cx);
     cx.timer.every(2000, (cx) => this.load(cx));
   }
@@ -25,35 +25,56 @@ export default class BlockedRun extends View {
     const { machine } = currentSpace();
     if (this.loading) return;
     this.loading = true;
+    const seen = this.tracker.begin();
     cx.spawn(async (cx) => {
       const r = await exec("sh", ["-c", READ_ALL], { on: machine }).catch(() => null);
-      this.waiting[machine ?? ""] = parseWaiting(r?.stdout ?? "");
+      if (this.tracker.isFresh(seen)) this.waiting[machine ?? ""] = parseWaiting(r?.stdout ?? "");
       this.loading = false;
       cx.notify();
     });
   }
 
-  // Run or Dismiss: the item leaves its terminal's queue on the machine.
-  remove(item, machine, cx) {
-    const all = this.waiting[machine ?? ""] ?? [];
-    const queue = withoutItem(queueOf(all, item.terminal), item.index);
-    const record = queue.length ? JSON.stringify({ terminal: item.terminal, queue }) : "";
-    this.waiting[machine ?? ""] = all.filter((w) => w !== item);
+  // Hidden at once, so a second click can't run it again; any check already under way is ignored.
+  hide(item, machine) {
+    this.tracker.change();
+    this.waiting[machine ?? ""] = (this.waiting[machine ?? ""] ?? []).filter((w) => w !== item);
+  }
+
+  drop(item, machine) {
+    return exec("python3", ["-I", "-c", DROP_SCRIPT, item.terminal, item.command], { on: machine })
+      .catch(() => null).finally(() => this.tracker.change());
+  }
+
+  dismiss(item, machine, cx) {
+    this.hide(item, machine);
     cx.notify();
-    cx.spawn(async () => { await exec("sh", ["-c", WRITE_ONE, "sh", item.terminal, record], { on: machine }).catch(() => null); });
+    cx.spawn(async (cx) => { await this.drop(item, machine); cx.notify(); });
   }
 
   runIt(item, machine, cx) {
     const address = machine ? `${machine}/${item.terminal}` : item.terminal;
-    cx.spawn(async () => { await hc(["send", address, bangLine(item.command)]); });
-    run("pane.focus", { terminal: address });
-    this.remove(item, machine, cx);
+    this.hide(item, machine);
+    cx.notify();
+    cx.spawn(async (cx) => {
+      const send = (i) => hc(["send", address, bangLine(i.command)]);
+      if (await runThenDrop(send, (i) => this.drop(i, machine), item)) run("pane.focus", { terminal: address });
+      else notify({ title: "Couldn't run the command", body: "Its terminal didn't take it, so it stays in the list.", level: "error" });
+      this.tracker.change();
+      cx.notify();
+    });
   }
 
-  button(id, label, primary, t, onClick) {
+  buttonShape({ id, label, onClick }) {
     return h_flex().id(id).flex_none().h(28).px(14).items_center().rounded(7).cursor_pointer().text_size(12).font_semibold()
-      .bg(primary ? t.solid : t.raised).text_color(primary ? t.solid_foreground : t.foreground)
-      .border_1().border_color(primary ? t.solid : t.input).hover((s) => s.opacity(0.88)).on_click(onClick).child(label);
+      .border_1().hover((s) => s.opacity(0.88)).on_click(onClick).child(label);
+  }
+
+  primaryButton(t, button) {
+    return this.buttonShape(button).bg(t.solid).text_color(t.solid_foreground).border_color(t.solid);
+  }
+
+  plainButton(t, button) {
+    return this.buttonShape(button).bg(t.raised).text_color(t.foreground).border_color(t.input);
   }
 
   card(item, machine, t) {
@@ -63,8 +84,8 @@ export default class BlockedRun extends View {
       .child(div().text_size(11).font_bold().text_color(color).child(item.asked ? "CLAUDE ASKS YOU TO RUN" : "AUTO MODE BLOCKED"))
       .child(div().text_size(12.5).font_family(settings().font_family).text_color(t.foreground).child(item.command))
       .child(h_flex().gap(8).justify_end()
-        .child(this.button(`dismiss-${key}`, "Dismiss", false, t, (_e, cx) => this.remove(item, machine, cx)))
-        .child(this.button(`run-${key}`, "Run it", true, t, (_e, cx) => this.runIt(item, machine, cx))));
+        .child(this.plainButton(t, { id: `dismiss-${key}`, label: "Dismiss", onClick: (_e, cx) => this.dismiss(item, machine, cx) }))
+        .child(this.primaryButton(t, { id: `run-${key}`, label: "Run it", onClick: (_e, cx) => this.runIt(item, machine, cx) })));
   }
 
   render() {

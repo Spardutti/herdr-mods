@@ -1,6 +1,21 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { bangLine, forSpace, parseWaiting, queueOf, withoutItem } from "./waiting.js";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { DROP_SCRIPT, bangLine, forSpace, newTracker, parseWaiting, runThenDrop } from "./waiting.js";
+
+function machineWith(...queue) {
+  const home = mkdtempSync(join(tmpdir(), "blocked-"));
+  const folder = join(home, ".config", "herdr-blocked");
+  mkdirSync(folder, { recursive: true });
+  const file = join(folder, "t2p.json");
+  writeFileSync(file, JSON.stringify({ terminal: "t2p", queue }) + "\n");
+  const drop = (command) => execFileSync("python3", ["-I", "-c", DROP_SCRIPT, "t2p", command], { env: { HOME: home, PATH: process.env.PATH } });
+  const left = () => (existsSync(file) ? JSON.parse(readFileSync(file, "utf8")).queue.map((i) => i.command) : null);
+  return { drop, left };
+}
 
 const record = (terminal, ...queue) => JSON.stringify({ terminal, queue }) + "\n";
 const item = (terminal, command, index, asked = true) => ({ terminal, command, asked, index });
@@ -11,16 +26,26 @@ test("parseWaiting reads each terminal's queue in order", () => {
   assert.deepEqual(parseWaiting(text), [item("t2p", "git push", 0), item("t2p", "gh pr merge 50", 1, false), item("t1y", "ls", 0)]);
 });
 
-test("parseWaiting skips a broken line and a terminal id with a slash", () => {
-  const text = `not json\n${record("../t2p", { command: "ls", asked: true })}`;
+test("parseWaiting skips a broken line and still reads the record after it", () => {
+  const text = `not json\n${record("t2p", { command: "ls", asked: true })}`;
+
+  assert.deepEqual(parseWaiting(text), [item("t2p", "ls", 0)]);
+});
+
+test("parseWaiting skips a record whose terminal id has a slash", () => {
+  assert.deepEqual(parseWaiting(record("../t2p", { command: "ls", asked: true })), []);
+});
+
+test("parseWaiting drops a command with a control character", () => {
+  const text = record("t2p", { command: "echo \u001b[2J", asked: true });
 
   assert.deepEqual(parseWaiting(text), []);
 });
 
-test("parseWaiting drops a command with a control character and renumbers the rest", () => {
+test("parseWaiting numbers the commands left after a dropped one from 0", () => {
   const text = record("t2p", { command: "echo \u001b[2J", asked: true }, { command: "git push", asked: true });
 
-  assert.deepEqual(parseWaiting(text), [item("t2p", "git push", 0)]);
+  assert.equal(parseWaiting(text)[0].index, 0);
 });
 
 test("parseWaiting keeps a command split over lines", () => {
@@ -39,14 +64,61 @@ test("forSpace on this computer matches bare terminal addresses", () => {
   assert.deepEqual(forSpace([item("t5", "ls", 0)], ["t5"], null), [item("t5", "ls", 0)]);
 });
 
-test("queueOf gives a terminal's queue back in the file's shape", () => {
-  const waiting = [item("t2p", "a", 0), item("t1y", "b", 0), item("t2p", "c", 1, false)];
+test("dropping two commands in a row removes exactly those two", () => {
+  const machine = machineWith({ command: "a", asked: true }, { command: "b", asked: true }, { command: "c", asked: true });
 
-  assert.deepEqual(queueOf(waiting, "t2p"), [{ command: "a", asked: true }, { command: "c", asked: false }]);
+  machine.drop("a");
+  machine.drop("c");
+
+  assert.deepEqual(machine.left(), ["b"]);
 });
 
-test("withoutItem drops the item at the index", () => {
-  assert.deepEqual(withoutItem(["a", "b", "c"], 1), ["a", "c"]);
+test("dropping a command keeps one the hook added after the box last looked", () => {
+  const machine = machineWith({ command: "git push", asked: true }, { command: "gh pr merge 50", asked: false });
+
+  machine.drop("git push");
+
+  assert.deepEqual(machine.left(), ["gh pr merge 50"]);
+});
+
+test("dropping the last command removes the file", () => {
+  const machine = machineWith({ command: "git push", asked: true });
+
+  machine.drop("git push");
+
+  assert.equal(machine.left(), null);
+});
+
+test("runThenDrop drops the command once it was typed in", async () => {
+  const dropped = [];
+
+  await runThenDrop(async () => ({ code: 0 }), async (i) => dropped.push(i), "git push");
+
+  assert.deepEqual(dropped, ["git push"]);
+});
+
+test("runThenDrop keeps the command when typing it in failed", async () => {
+  const dropped = [];
+
+  const ran = await runThenDrop(async () => { throw new Error("terminal gone"); }, async (i) => dropped.push(i), "git push");
+
+  assert.deepEqual([ran, dropped], [false, []]);
+});
+
+test("a check that started before a Run is not fresh", () => {
+  const tracker = newTracker();
+  const seen = tracker.begin();
+
+  tracker.change();
+
+  assert.equal(tracker.isFresh(seen), false);
+});
+
+test("a check that started after a Run is fresh", () => {
+  const tracker = newTracker();
+  tracker.change();
+
+  assert.equal(tracker.isFresh(tracker.begin()), true);
 });
 
 test("bangLine puts Claude's shell-mode prefix before the command", () => {
