@@ -8,6 +8,7 @@ Mods for the [Herdr](https://herdr.dev) desktop app, plus two helpers for runnin
 | [`release-status`](#release-status) | What's waiting on the dev branch to go to `main`, for the space you're in. | any |
 | [`dev-apps`](#dev-apps) | The space's browser apps: running or not, a link, Start and Stop. | Linux or WSL spaces with systemd |
 | [`blocked-run`](#blocked-run) | Commands auto mode blocked, or Claude asked you to run, with a **Run it** button. | Linux or WSL spaces |
+| [`demo-board`](#demo-board) | A per-project board of what to show at the next demo: Claude adds steps on each PR, you approve them and take notes. | Linux or WSL spaces |
 | [`resume`](#resume) | Brings each Claude Code chat back after a reboot or crash. | Linux or WSL |
 | [`shutdown`](#shutdown) | Shuts WSL down 2 minutes after you close Herdr. | Windows + WSL |
 
@@ -110,6 +111,27 @@ Two parts, with `<repo>` the path of this clone:
 
 2. The `blocked-run` mod. Install it like the others and add a block for it, for example under `apps` in the column below:
    `{ "id": "commands", "type": "block", "size": { "weight": 1 }, "content": { "mod": "blocked-run" } }`
+
+## demo-board
+
+Each project can have a demo board: a private claude.ai page that lists what to show at the next demo. Claude adds steps
+each time it opens a PR. During the demo you mark each one **Approved** or **Changes asked**, and type notes (Enter after
+each). Later, ask Claude to "read the demo notes".
+
+A **DEMO** box in Herdr opens the board for the space you're in, or turns it off. A project is off until you ask Claude to
+"turn on the demo board". Boards are listed in `~/.config/demo-board/boards.tsv`, one `<project>\t<link>` line each.
+
+Three parts, with `<repo>` the path of this clone:
+
+1. The skill: copy `mods/demo-board/claude/SKILL.md` to `~/.claude/skills/demo-board/SKILL.md`.
+2. A Claude Code hook that reminds Claude after `gh pr create`. Add to `~/.claude/settings.json`, next to any hooks you have:
+
+   ```json
+   "PostToolUse": [{ "matcher": "Bash", "hooks": [{ "type": "command", "command": "node <repo>/mods/demo-board/claude/pr-hook.mjs", "timeout": 10 }] }]
+   ```
+
+3. The `demo-board` mod. Install it like the others (the `claude` folder can stay behind) and add a block for it:
+   `{ "id": "demo", "type": "block", "size": { "px": 96 }, "content": { "mod": "demo-board" } }`
 
 ## resume
 
