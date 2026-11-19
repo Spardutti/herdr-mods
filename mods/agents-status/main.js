@@ -57,7 +57,7 @@ export default class AgentsStatus extends View {
     const count = p.members.length === 1 ? "1 chat" : `${p.members.length} chats`;
     return v_flex().id(`project-${p.id}`).mt(2).gap(2)
       .child(h_flex().mx(6).mb(2).pb(3).gap(8).items_end().border_b_1().border_color(t.border)
-        .child(div().flex_1().min_w(0).text_size(14).font_bold().text_color(t.foreground).child(p.name))
+        .child(div().flex_1().min_w(0).text_size(14).font_bold().text_color(t.accent).child(p.name))
         .child(div().flex_none().text_size(12).text_color(t.muted).child(count)))
       .children(p.members.map((a) => this.row(a, t, now)));
   }
