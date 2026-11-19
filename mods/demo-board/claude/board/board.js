@@ -75,21 +75,10 @@ function stepItem(step) {
   return el("li", { className: `step ${step.status}` }, [head, how, stepActions(step)]);
 }
 
-function keepDrafts(rebuild) {
-  const drafts = [...document.querySelectorAll(".step-note")].map((input) => [input.id, input.value]);
-  const focused = document.activeElement?.id;
-  rebuild();
-  for (const [id, value] of drafts) if ($(id)) $(id).value = value;
-  if (focused && $(focused)) $(focused).focus();
-}
-
 function renderSteps() {
-  keepDrafts(drawSteps);
-  if (state.focusStep) $(`note-${state.focusStep}`)?.focus();
+  const drafts = [...document.querySelectorAll(".step-note")].map((input) => [input.id, input.value]);
+  const focused = state.focusStep ? `note-${state.focusStep}` : document.activeElement?.id;
   state.focusStep = null;
-}
-
-function drawSteps() {
   const of = (status) => state.steps.filter((s) => s.status === status);
   const open = of("todo"), changes = of("changes"), done = of("approved");
   $("todo").replaceChildren(...open.map(stepItem));
@@ -101,6 +90,8 @@ function drawSteps() {
   $("todo-empty").hidden = open.length > 0;
   $("changes-box").hidden = changes.length === 0;
   $("done-box").hidden = done.length === 0;
+  for (const [id, value] of drafts) if ($(id)) $(id).value = value;
+  if (focused && $(focused)) $(focused).focus();
 }
 
 function noteItem(note) {

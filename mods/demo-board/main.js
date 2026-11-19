@@ -1,7 +1,7 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { checking, exec, focused, panes, spaces, theme } from "herdr";
-import { READ_BOARDS, boardUrl, turnOffCommand } from "./boards.js";
+import { READ_BOARDS, boardAfterRead, turnOffCommand } from "./boards.js";
 import { projectName } from "./project.js";
 
 // The focused space's folder and machine, as Herdr's changes mod finds them.
@@ -31,8 +31,8 @@ export default class DemoBoard extends View {
     cx.spawn(async (cx) => {
       const commonDir = await run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd, on);
       const name = projectName(commonDir, cwd);
-      const url = boardUrl(await run(READ_BOARDS, cwd, on), name);
-      if (key === this.key) this.board = { name, url };
+      const tsv = await run(READ_BOARDS, cwd, on);
+      if (key === this.key) this.board = boardAfterRead(this.board, name, tsv);
       cx.notify();
     });
   }
