@@ -70,11 +70,11 @@ export default class DevApps extends View {
         .child(div().size(8).flex_none().rounded(4).when(up, (el) => el.bg(color)).when(!up, (el) => el.border_1().border_color(color)))
         .child(div().flex_1().font_semibold().text_color(t.foreground).child(app.service))
         .child(div().text_size(12).font_semibold().text_color(color).child(WORDS[status])))
-      .when(Boolean(url), (el) => el.child(this.links(app, url, up, t)));
+      .when(Boolean(url), (el) => el.child(this.links(app, up, t)));
   }
 
-  links(app, url, up, t) {
-    const script = `${appHome()}/mods/dev-apps/open-sized.ps1`;
+  links(app, up, t) {
+    const url = appUrl(app), script = `${appHome()}/mods/dev-apps/open-sized.ps1`;
     return h_flex().gap(10).items_center()
       .child(div().id(`link-${app.service}`).flex_1().text_size(14).cursor_pointer()
         .text_color(up ? t.accent : t.dim).hover((s) => s.opacity(0.8))

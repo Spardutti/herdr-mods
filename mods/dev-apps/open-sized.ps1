@@ -6,7 +6,6 @@ public static class Win {
   [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc f, IntPtr l);
   [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr h);
   [DllImport("user32.dll")] static extern int GetClassName(IntPtr h, StringBuilder s, int n);
-  [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
   [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h, int cmd);
   [DllImport("user32.dll")] public static extern bool MoveWindow(IntPtr h, int x, int y, int w, int ht, bool r);
   public static List<IntPtr> ChromeWindows() {
@@ -20,7 +19,6 @@ public static class Win {
   }
 }
 "@
-[Win]::SetProcessDPIAware() | Out-Null
 $before = [Win]::ChromeWindows()
 Start-Process "C:\Program Files\Google\Chrome\Application\chrome.exe" "--new-window $Url"
 for ($i = 0; $i -lt 50; $i++) {
