@@ -13,8 +13,8 @@
   "lessons": [
     {
       "id": "stale-load-wins",
-      "files": "^mods/[^/]+/main\\.js$",
-      "message": "A polled load in cx.spawn can finish after a newer action and put old data back: skip a tick while one is in flight (the `loading` flag in mods/release-status/main.js), drop results older than the last action, and never write a whole file back from a snapshot."
+      "files": "^mods/[^/]+/(?![^/]*\\.test\\.)[^/]+\\.m?js$",
+      "message": "A polled load in cx.spawn can finish after a newer action and put old data back: drop results older than the last action (the `tracker` in mods/blocked-run/main.js), and never write a whole file back from a snapshot."
     }
   ]
 }
