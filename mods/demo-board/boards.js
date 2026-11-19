@@ -13,6 +13,12 @@ export function boardUrl(tsv, project) {
   return null;
 }
 
+/** What the box shows after a read of boards.tsv; `tsv` is undefined when the read failed. */
+export function boardAfterRead(shown, name, tsv) {
+  if (tsv === undefined && shown?.name === name) return shown;
+  return { name, url: boardUrl(tsv, name) };
+}
+
 /** argv that removes `project`'s line from boards.tsv, passing the name as an argument, not in the script. */
 export function turnOffCommand(project) {
   // ENVIRON, not -v: awk -v rewrites backslashes in the name.

@@ -5,7 +5,20 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect } from "../../test-support/expect.js";
 
-import { boardUrl, turnOffCommand } from "./boards.js";
+import { boardAfterRead, boardUrl, turnOffCommand } from "./boards.js";
+
+test("a failed read keeps the board the box already shows", () => {
+  const shown = { name: "acomer", url: "https://claude.ai/artifact/a1" };
+  expect(boardAfterRead(shown, "acomer", undefined)).toBe(shown);
+});
+
+test("a failed read in a new project shows the board as off", () => {
+  expect(boardAfterRead({ name: "other", url: "https://claude.ai/artifact/z9" }, "acomer", undefined)).toEqual({ name: "acomer", url: null });
+});
+
+test("a read of an emptied list turns the shown board off", () => {
+  expect(boardAfterRead({ name: "acomer", url: "https://claude.ai/artifact/a1" }, "acomer", "")).toEqual({ name: "acomer", url: null });
+});
 
 test("a project with a line gets its board link", () => {
   expect(boardUrl("other\thttps://claude.ai/artifact/z9\nacomer\thttps://claude.ai/artifact/a1\n", "acomer")).toBe("https://claude.ai/artifact/a1");

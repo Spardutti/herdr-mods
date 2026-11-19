@@ -1,7 +1,7 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { checking, exec, focused, panes, spaces, theme } from "herdr";
-import { READ_BOARDS, boardUrl, turnOffCommand } from "./boards.js";
+import { READ_BOARDS, boardAfterRead, turnOffCommand } from "./boards.js";
 import { projectName } from "./project.js";
 
 // The focused space's folder and machine, as Herdr's changes mod finds them.
@@ -21,18 +21,18 @@ export default class DemoBoard extends View {
     this.board = undefined;
     if (checking()) return;
     this.load(cx);
+    cx.timer.every(10000, (cx) => this.load(cx));
   }
 
   load(cx) {
     const { cwd, on } = location(), key = JSON.stringify([cwd, on]);
-    this.key = key;
-    this.board = undefined;
-    if (!cwd) return;
+    if (key !== this.key) { this.key = key; this.board = undefined; }
+    if (!cwd) { this.board = null; return; }
     cx.spawn(async (cx) => {
       const commonDir = await run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd, on);
       const name = projectName(commonDir, cwd);
-      const url = boardUrl(await run(READ_BOARDS, cwd, on), name);
-      if (key === this.key) this.board = { name, url };
+      const tsv = await run(READ_BOARDS, cwd, on);
+      if (key === this.key) this.board = boardAfterRead(this.board, name, tsv);
       cx.notify();
     });
   }
@@ -55,6 +55,7 @@ export default class DemoBoard extends View {
   body(t) {
     const b = this.board;
     if (b === undefined) return div().text_size(12.5).text_color(t.dim).child("Checking…");
+    if (b === null) return div().text_size(12.5).text_color(t.dim).child("This space has no project folder.");
     if (!b.url) return div().text_size(12.5).text_color(t.dim).child(`Off for ${b.name}. To turn it on, ask Claude: "turn on the demo board".`);
     return h_flex().gap(8).items_center()
       .child(this.button({ id: "open", label: "Open board ↗", onClick: () => exec("explorer.exe", [b.url]).catch(() => null),

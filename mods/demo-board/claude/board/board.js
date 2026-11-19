@@ -76,6 +76,9 @@ function stepItem(step) {
 }
 
 function renderSteps() {
+  const drafts = [...document.querySelectorAll(".step-note")].map((input) => [input.id, input.value]);
+  const focused = state.focusStep ? `note-${state.focusStep}` : document.activeElement?.id;
+  state.focusStep = null;
   const of = (status) => state.steps.filter((s) => s.status === status);
   const open = of("todo"), changes = of("changes"), done = of("approved");
   $("todo").replaceChildren(...open.map(stepItem));
@@ -87,8 +90,8 @@ function renderSteps() {
   $("todo-empty").hidden = open.length > 0;
   $("changes-box").hidden = changes.length === 0;
   $("done-box").hidden = done.length === 0;
-  if (state.focusStep) $(`note-${state.focusStep}`)?.focus();
-  state.focusStep = null;
+  for (const [id, value] of drafts) if ($(id)) $(id).value = value;
+  if (focused && $(focused)) $(focused).focus();
 }
 
 function noteItem(note) {
