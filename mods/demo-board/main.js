@@ -3,6 +3,7 @@ import { v_flex, h_flex } from "gpui-base";
 import { checking, exec, focused, panes, spaces, theme } from "herdr";
 import { READ_BOARDS, boardAfterRead, turnOffCommand } from "./boards.js";
 import { projectName } from "./project.js";
+import { newReads } from "./reads.js";
 
 // The focused space's folder and machine, as Herdr's changes mod finds them.
 function location() {
@@ -19,6 +20,7 @@ const run = async (argv, cwd, on) => {
 export default class DemoBoard extends View {
   init(_props, cx) {
     this.board = undefined;
+    this.reads = newReads();
     if (checking()) return;
     this.load(cx);
     cx.timer.every(10000, (cx) => this.load(cx));
@@ -26,13 +28,15 @@ export default class DemoBoard extends View {
 
   load(cx) {
     const { cwd, on } = location(), key = JSON.stringify([cwd, on]);
-    if (key !== this.key) { this.key = key; this.board = undefined; }
+    if (key !== this.key) { this.key = key; this.board = undefined; this.reads.invalidate(); }
     if (!cwd) { this.board = null; return; }
+    const seen = this.reads.start();
+    if (seen === null) return;
     cx.spawn(async (cx) => {
       const commonDir = await run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd, on);
       const name = projectName(commonDir, cwd);
       const tsv = await run(READ_BOARDS, cwd, on);
-      if (key === this.key) this.board = boardAfterRead(this.board, name, tsv);
+      if (this.reads.finish(seen)) this.board = boardAfterRead(this.board, name, tsv);
       cx.notify();
     });
   }
@@ -40,8 +44,10 @@ export default class DemoBoard extends View {
   turnOff(cx) {
     const { cwd, on } = location(), name = this.board?.name;
     if (!name) return;
+    this.reads.invalidate();
     cx.spawn(async (cx) => {
       await run(turnOffCommand(name), cwd, on);
+      this.reads.invalidate();
       this.load(cx);
     });
   }
