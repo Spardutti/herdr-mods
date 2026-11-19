@@ -11,7 +11,7 @@ Which projects have one lives in `~/.config/demo-board/boards.tsv`, one `<projec
 Get the project name from the mod's own code, so it matches what the Herdr box and the hook look up:
 `node -e "import(process.argv[1]).then(m => console.log(m.projectName(process.argv[2], process.cwd())))" "$HOME/.claude/demo-board/project.js" "$(git rev-parse --path-format=absolute --git-common-dir)"`
 
-Board source: `~/.claude/demo-board/board/` (`board.html`, `board.css`, `board.js`).
+Board source: `$HOME/.claude/demo-board/board/` (expand `$HOME` to a full path before reading or publishing) (`board.html`, `board.css`, `board.js`).
 
 ## Turn on
 

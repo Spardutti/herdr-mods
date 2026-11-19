@@ -123,7 +123,7 @@ A **DEMO** box in Herdr opens the board for the space you're in, or turns it off
 
 Three parts:
 
-1. Copy the Claude side out of this clone, so switching branches here never breaks the hook. Copy again after you change it:
+1. From the root of this clone, copy the Claude side out, so switching branches here never breaks the hook. Copy again after you change it:
 
    ```sh
    mkdir -p ~/.claude/demo-board/claude ~/.claude/skills/demo-board
