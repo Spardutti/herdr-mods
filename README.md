@@ -69,6 +69,8 @@ show; databases and APIs stay hidden.
   Without a compose file that maps the app's port, it runs the `package.json` script that names the port, with the package
   manager picked from the lock file.
 - **Stop** runs `docker compose down`, database included, or stops the scripts it started.
+- **1280** and **1920** open the link in a new Chrome window of that size (1280×800, 1920×1080), in the profile
+  you used last. Other windows keep their size. Needs Chrome on Windows.
 - Logs go to `~/.cache/dev-apps/<project>/`.
 - Start and Stop run as systemd user services, because Herdr ends whatever its own call started. So the space's
   machine needs systemd (in WSL, `systemd=true` in `/etc/wsl.conf`) and lingering: `loginctl enable-linger "$USER"`.
