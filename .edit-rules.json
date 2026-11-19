@@ -1,0 +1,20 @@
+{
+  "text": [
+    {
+      "id": "max-three-params",
+      "files": "\\.m?[jt]sx?$",
+      "pattern": "(?:\\bfunction\\b[^(\\n]*|^[ \\t]*(?!(?:if|for|while|switch|catch)\\b)[A-Za-z_$][\\w$]*[ \\t]*)\\((?:[^(),{}\\n]*,){3}[^(){}\\n]*\\)[ \\t]*\\{|\\((?:[^(),{}\\n]*,){3}[^(){}\\n]*\\)[ \\t]*=>",
+      "flags": "m",
+      "message": "This function takes 4 or more inputs; the limit is 3. Work one out inside it, or pass an options object.",
+      "bad": "  meta(a, color, t, now) {",
+      "good": "  meta(a, t, now) {"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "stale-load-wins",
+      "files": "^mods/[^/]+/main\\.js$",
+      "message": "A polled load in cx.spawn can finish after a newer action and put old data back: skip a tick while one is in flight (the `loading` flag in mods/release-status/main.js), drop results older than the last action, and never write a whole file back from a snapshot."
+    }
+  ]
+}
