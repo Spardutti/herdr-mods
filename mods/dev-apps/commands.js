@@ -9,8 +9,8 @@ export const COMPOSE_SERVICES = ["docker", "compose", "config", "--services"];
 
 export const COMPOSE_PS = ["docker", "compose", "ps", "-a", "--format", "json"];
 
-// setsid -f lets the app outlive Herdr's call; the exec line frees the pipes so the call returns at once.
-const detached = (script, ...args) => ["setsid", "-f", "sh", "-c", `mkdir -p ${CACHE} && ${script}`, "sh", ...args];
+// Herdr's exec kills every process it started when it returns, setsid ones too, so a user service runs the app.
+const detached = (script, ...args) => ["systemd-run", "--user", "--quiet", "--collect", "--same-dir", "-E", "PATH", "sh", "-c", `mkdir -p ${CACHE} && ${script}`, "sh", ...args];
 
 // Every watch started in this folder, by anyone: a pid file loses track once a second watch dies on the lock.
 const KILL_WATCHES = `for p in $(pgrep -f "^docker compose watch"); do [ "$(readlink /proc/$p/cwd)" = "$(pwd -P)" ] || continue; kill -TERM "-$p" 2>/dev/null || kill -TERM "$p"; timeout 10 tail --pid="$p" -f /dev/null; done`;

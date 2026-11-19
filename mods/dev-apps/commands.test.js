@@ -3,7 +3,18 @@ import { expect } from "../../test-support/expect.js";
 
 import { lastError, startCommands, stopCommand } from './commands.js'
 
-const script = (argv) => argv?.[4] ?? ''
+const script = (argv) => argv?.[argv.indexOf('-c') + 1] ?? ''
+const OUTSIDE_HERDR = ['systemd-run', '--user', '--quiet', '--collect', '--same-dir', '-E', 'PATH', 'sh', '-c']
+
+for (const [what, argv] of [
+  ['a docker start', startCommands('shop', { kind: 'docker', watch: true })[0]],
+  ['a docker stop', stopCommand('shop', { kind: 'docker', watch: true })],
+  ['an npm start', startCommands('shop', { kind: 'npm', scripts: ['dev'], manager: 'npm' })[0]],
+]) {
+  test(`${what} runs as a user service, so it outlives Herdr's call`, () => {
+    expect(argv.slice(0, OUTSIDE_HERDR.length)).toEqual(OUTSIDE_HERDR)
+  })
+}
 
 test('a docker project with develop.watch stops the watch already in its folder, then starts compose watch', () => {
   const started = script(startCommands('shop', { kind: 'docker', watch: true })[0])
