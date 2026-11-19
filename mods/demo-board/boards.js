@@ -15,6 +15,8 @@ export function boardUrl(tsv, project) {
 
 /** argv that removes `project`'s line from boards.tsv, passing the name as an argument, not in the script. */
 export function turnOffCommand(project) {
-  const script = `awk -F'\\t' -v p="$1" '$1 != p' ${BOARDS} > ${BOARDS}.tmp && mv ${BOARDS}.tmp ${BOARDS}`;
+  // ENVIRON, not -v: awk -v rewrites backslashes in the name.
+  const filter = `{ k = $1; gsub(/^[ \\t]+|[ \\t]+$/, "", k) } k != ENVIRON["P"]`;
+  const script = `P="$1" awk -F'\\t' '${filter}' ${BOARDS} > ${BOARDS}.tmp && mv ${BOARDS}.tmp ${BOARDS}`;
   return ["sh", "-c", script, "sh", project];
 }

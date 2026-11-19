@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// Claude Code PostToolUse hook on Bash: reminds Claude to fill the demo board after `gh pr create`.
 import { execFileSync } from "node:child_process";
 import { boardUrl, READ_BOARDS } from "../boards.js";
 import { projectName } from "../project.js";
@@ -13,15 +12,11 @@ const run = (argv, cwd) => {
   }
 };
 
-async function readStdin() {
-  let text = "";
-  for await (const chunk of process.stdin) text += chunk;
-  return JSON.parse(text);
-}
-
 /** Reads the hook JSON from stdin and prints additionalContext when the project's board is on. */
 async function main() {
-  const input = await readStdin();
+  let text = "";
+  for await (const chunk of process.stdin) text += chunk;
+  const input = JSON.parse(text);
   const command = input.tool_input?.command ?? "";
   if (!reminderFor(command, "https://claude.ai/")) return;
   const cwd = input.cwd ?? process.cwd();

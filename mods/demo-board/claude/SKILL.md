@@ -8,8 +8,8 @@ description: Keep a project's demo board (a claude.ai artifact) up to date — t
 Each project can have one board: a private claude.ai artifact listing what to show at the next demo, plus notes typed during it.
 Which projects have one lives in `~/.config/demo-board/boards.tsv`, one `<project>\t<board url>` line each. No line means off: add nothing.
 
-The project name is the folder that holds the git checkout (for a worktree, its main checkout):
-`basename "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"`.
+Get the project name from the mod's own code, so it matches what the Herdr box and the hook look up:
+`node -e "import('/home/spardutti/projects/personal/herdr-mods/mods/demo-board/project.js').then(m => console.log(m.projectName(process.argv[1], process.cwd())))" "$(git rev-parse --path-format=absolute --git-common-dir)"`
 
 Board source: `/home/spardutti/projects/personal/herdr-mods/mods/demo-board/claude/board/` (`board.html`, `board.css`, `board.js`).
 
