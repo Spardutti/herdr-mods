@@ -70,6 +70,8 @@ show; databases and APIs stay hidden.
   manager picked from the lock file.
 - **Stop** runs `docker compose down`, database included, or stops the scripts it started.
 - Logs go to `~/.cache/dev-apps/<project>/`.
+- Start and Stop run as systemd user services, because Herdr ends whatever its own call started. So the space's
+  machine needs systemd (in WSL, `systemd=true` in `/etc/wsl.conf`) and lingering: `loginctl enable-linger "$USER"`.
 
 ### Putting release-status and dev-apps in a column
 
