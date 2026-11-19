@@ -9,9 +9,9 @@ Each project can have one board: a private claude.ai artifact listing what to sh
 Which projects have one lives in `~/.config/demo-board/boards.tsv`, one `<project>\t<board url>` line each. No line means off: add nothing.
 
 Get the project name from the mod's own code, so it matches what the Herdr box and the hook look up:
-`node -e "import('/home/spardutti/projects/personal/herdr-mods/mods/demo-board/project.js').then(m => console.log(m.projectName(process.argv[1], process.cwd())))" "$(git rev-parse --path-format=absolute --git-common-dir)"`
+`node -e "import(process.argv[1]).then(m => console.log(m.projectName(process.argv[2], process.cwd())))" "$HOME/.claude/demo-board/project.js" "$(git rev-parse --path-format=absolute --git-common-dir)"`
 
-Board source: `/home/spardutti/projects/personal/herdr-mods/mods/demo-board/claude/board/` (`board.html`, `board.css`, `board.js`).
+Board source: `$HOME/.claude/demo-board/board/` (expand `$HOME` to a full path before reading or publishing) (`board.html`, `board.css`, `board.js`).
 
 ## Turn on
 
