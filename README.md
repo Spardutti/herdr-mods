@@ -6,7 +6,7 @@ Mods for the [Herdr](https://herdr.dev) desktop app, plus two helpers for runnin
 | --- | --- | --- |
 | [`agents-status`](#agents-status) | The Agents list grouped by what needs you: **Needs you**, **Working**, **Idle**. F8 jumps to the top one. | any |
 | [`release-status`](#release-status) | What's waiting on the dev branch to go to `main`, for the space you're in. | any |
-| [`dev-apps`](#dev-apps) | The space's browser apps: running or not, a link, Start and Stop. | Linux or WSL spaces |
+| [`dev-apps`](#dev-apps) | The space's browser apps: running or not, a link, Start and Stop. | Linux or WSL spaces with systemd |
 | [`blocked-run`](#blocked-run) | Commands auto mode blocked, or Claude asked you to run, with a **Run it** button. | Linux or WSL spaces |
 | [`resume`](#resume) | Brings each Claude Code chat back after a reboot or crash. | Linux or WSL |
 | [`shutdown`](#shutdown) | Shuts WSL down 2 minutes after you close Herdr. | Windows + WSL |
