@@ -10,12 +10,16 @@ export function grouped(list) {
     .filter((g) => g.members.length);
 }
 
-export function bySpace(list) {
+const URGENCY = { blocked: 0, done: 0, working: 1, idle: 2 };
+
+/** Agents grouped by space, most urgent space first; inside one, most urgent chat first. Ties: most recent first. */
+export function byProject(list, changed) {
+  const when = (a) => changed[a.address]?.at ?? 0;
+  const sorted = [...list].sort((x, y) => URGENCY[x.status] - URGENCY[y.status] || when(y) - when(x));
   const spaces = new Map();
-  for (const a of list) spaces.set(a.space, [...(spaces.get(a.space) ?? []), a]);
+  for (const a of sorted) spaces.set(a.space, [...(spaces.get(a.space) ?? []), a]);
   return [...spaces].map(([id, members]) => ({ id, name: members[0].space_name, members }));
 }
-
 export function firstNeedingYou(list) {
   return grouped(list).find((g) => g.id === "needs")?.members[0] ?? null;
 }
