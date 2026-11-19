@@ -1,0 +1,41 @@
+<title>Demo Board</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="board.css">
+
+<main class="page">
+  <header class="top">
+    <p class="eyebrow">Demo board</p>
+    <h1 id="project">Loading…</h1>
+    <p id="status" class="status" role="status"></p>
+  </header>
+
+  <div class="grid">
+    <section class="steps" aria-labelledby="steps-title">
+      <h2 id="steps-title">To show <span id="todo-count" class="count"></span></h2>
+      <ol id="todo" class="list"></ol>
+      <p id="todo-empty" class="empty" hidden>Nothing left to show. Claude adds steps here each time you open a PR.</p>
+      <div id="changes-box" class="changes-box" hidden>
+        <h2>Changes asked <span id="changes-count" class="count"></span></h2>
+        <ol id="changes" class="list"></ol>
+      </div>
+      <details id="done-box" class="done" hidden>
+        <summary>Approved <span id="done-count" class="count"></span></summary>
+        <button id="clear-done" class="clear" type="button">Delete approved</button>
+        <ol id="done" class="list"></ol>
+      </details>
+    </section>
+
+    <section class="notes" aria-labelledby="notes-title">
+      <h2 id="notes-title">Notes</h2>
+      <form id="note-form" class="note-form">
+        <label for="note-input" class="sr">New note</label>
+        <input id="note-input" autocomplete="off" placeholder="Type a note, press Enter">
+      </form>
+      <ul id="note-list" class="note-list"></ul>
+      <p id="notes-empty" class="empty" hidden>Notes you type during the demo land here. Ask Claude to read them later.</p>
+    </section>
+  </div>
+</main>
+
+<script src="board.js"></script>
