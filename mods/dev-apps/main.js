@@ -1,6 +1,7 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { exec, focused, panes, readTextFile, spaces, theme } from "herdr";
+import { appHome, exec, focused, panes, readTextFile, spaces, theme } from "herdr";
+import { SIZES, sizedOpen } from "./browser.js";
 import { isAnyDown, isAnyUp } from "./containers.js";
 import { appUrl, loadProject, pollProject, startProject, stopProject } from "./probe.js";
 import { isBusy, statusOf } from "./running.js";
@@ -69,9 +70,18 @@ export default class DevApps extends View {
         .child(div().size(8).flex_none().rounded(4).when(up, (el) => el.bg(color)).when(!up, (el) => el.border_1().border_color(color)))
         .child(div().flex_1().font_semibold().text_color(t.foreground).child(app.service))
         .child(div().text_size(12).font_semibold().text_color(color).child(WORDS[status])))
-      .when(Boolean(url), (el) => el.child(div().id(`link-${app.service}`).text_size(14).cursor_pointer()
+      .when(Boolean(url), (el) => el.child(this.links(app, url, up, t)));
+  }
+
+  links(app, url, up, t) {
+    const script = `${appHome()}/mods/dev-apps/open-sized.ps1`;
+    return h_flex().gap(10).items_center()
+      .child(div().id(`link-${app.service}`).flex_1().text_size(14).cursor_pointer()
         .text_color(up ? t.accent : t.dim).hover((s) => s.opacity(0.8))
-        .on_click(() => exec("explorer.exe", [url]).catch(() => null)).child(`${url.replace("http://", "")} ↗`)));
+        .on_click(() => exec("explorer.exe", [url]).catch(() => null)).child(`${url.replace("http://", "")} ↗`))
+      .children(SIZES.map((size) => div().id(`size-${app.service}-${size.label}`).flex_none().px(6).rounded(5)
+        .text_size(11.5).cursor_pointer().text_color(t.muted).border_1().border_color(t.input).hover((s) => s.bg(t.hover))
+        .on_click(() => exec("powershell.exe", sizedOpen(script, url, size)).catch(() => null)).child(size.label)));
   }
 
   containers(services, t) {
