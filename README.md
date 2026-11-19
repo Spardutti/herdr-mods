@@ -6,7 +6,7 @@ Mods for the [Herdr](https://herdr.dev) desktop app, plus two helpers for runnin
 | --- | --- | --- |
 | [`agents-status`](#agents-status) | The Agents list grouped by what needs you: **Needs you**, **Working**, **Idle**. F8 jumps to the top one. | any |
 | [`release-status`](#release-status) | What's waiting on the dev branch to go to `main`, for the space you're in. | any |
-| [`dev-apps`](#dev-apps) | The space's browser apps: running or not, a link, Start and Stop. | Linux or WSL spaces |
+| [`dev-apps`](#dev-apps) | The space's browser apps: running or not, a link, Start and Stop. | Linux or WSL spaces with systemd |
 | [`blocked-run`](#blocked-run) | Commands auto mode blocked, or Claude asked you to run, with a **Run it** button. | Linux or WSL spaces |
 | [`resume`](#resume) | Brings each Claude Code chat back after a reboot or crash. | Linux or WSL |
 | [`shutdown`](#shutdown) | Shuts WSL down 2 minutes after you close Herdr. | Windows + WSL |
@@ -70,6 +70,8 @@ show; databases and APIs stay hidden.
   manager picked from the lock file.
 - **Stop** runs `docker compose down`, database included, or stops the scripts it started.
 - Logs go to `~/.cache/dev-apps/<project>/`.
+- Start and Stop run as systemd user services, because Herdr ends whatever its own call started. So the space's
+  machine needs systemd (in WSL, `systemd=true` in `/etc/wsl.conf`) and lingering: `loginctl enable-linger "$USER"`.
 
 ### Putting release-status and dev-apps in a column
 
