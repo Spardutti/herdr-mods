@@ -1,8 +1,8 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { exec, focused, panes, spaces, theme } from "herdr";
+import { checking, exec, focused, panes, spaces, theme } from "herdr";
 import { BASE, releaseStatus } from "./release.js";
-import { newTracker } from "./tracker.js";
+import { newReads } from "./reads.js";
 
 // The focused space's folder and machine, as Herdr's changes mod finds them.
 function location() {
@@ -17,25 +17,25 @@ const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 export default class ReleaseStatus extends View {
   init(_props, cx) {
     this.status = null;
-    this.tracker = newTracker();
-    this.inFlight = null;
+    this.reads = newReads();
+    if (checking()) return;
     this.refresh(cx);
     cx.timer.every(30000, (cx) => this.refresh(cx));
   }
 
   refresh(cx) {
     const { cwd, on } = location(), key = JSON.stringify([cwd, on]);
-    if (key !== this.key) { this.key = key; this.status = null; this.tracker.change(); this.inFlight = null; }
-    if (!cwd || this.inFlight !== null) return;
-    const seen = (this.inFlight = this.tracker.begin());
+    if (key !== this.key) { this.key = key; this.status = null; this.reads.invalidate(); }
+    if (!cwd) return;
+    const seen = this.reads.start();
+    if (seen === null) return;
     cx.spawn(async (cx) => {
       const git = async (args) => {
         const r = await exec("git", ["--no-optional-locks", ...args], { cwd, on }).catch(() => null);
         return r?.code === 0 ? r.stdout : undefined;
       };
       const status = await releaseStatus(git);
-      if (this.inFlight === seen) this.inFlight = null;
-      if (this.tracker.isFresh(seen)) this.status = status;
+      if (this.reads.finish(seen)) this.status = status;
       cx.notify();
     });
   }
@@ -75,7 +75,7 @@ export default class ReleaseStatus extends View {
 
   render(cx) {
     const t = theme(), { cwd, on, name } = location();
-    if (JSON.stringify([cwd, on]) !== this.key) this.refresh(cx);
+    if (JSON.stringify([cwd, on]) !== this.key && !checking()) this.refresh(cx);
     const branch = this.status?.branch;
     return v_flex().size_full().min_h(0).bg(t.chrome).px(16).pt(14).gap(14).text_size(13).overflow_y_scrollbar()
       .child(h_flex().gap(8).items_center()
