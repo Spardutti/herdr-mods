@@ -121,13 +121,22 @@ each). Later, ask Claude to "read the demo notes".
 A **DEMO** box in Herdr opens the board for the space you're in, or turns it off. A project is off until you ask Claude to
 "turn on the demo board". Boards are listed in `~/.config/demo-board/boards.tsv`, one `<project>\t<link>` line each.
 
-Three parts, with `<repo>` the path of this clone:
+Three parts:
 
-1. The skill: copy `mods/demo-board/claude/SKILL.md` to `~/.claude/skills/demo-board/SKILL.md`.
+1. Copy the Claude side out of this clone, so switching branches here never breaks the hook. Copy again after you change it:
+
+   ```sh
+   mkdir -p ~/.claude/demo-board/claude ~/.claude/skills/demo-board
+   cp mods/demo-board/boards.js mods/demo-board/project.js mods/demo-board/reminder.js ~/.claude/demo-board/
+   cp mods/demo-board/claude/pr-hook.mjs ~/.claude/demo-board/claude/
+   cp -r mods/demo-board/claude/board ~/.claude/demo-board/
+   cp mods/demo-board/claude/SKILL.md ~/.claude/skills/demo-board/
+   ```
+
 2. A Claude Code hook that reminds Claude after `gh pr create`. Add to `~/.claude/settings.json`, next to any hooks you have:
 
    ```json
-   "PostToolUse": [{ "matcher": "Bash", "hooks": [{ "type": "command", "command": "node <repo>/mods/demo-board/claude/pr-hook.mjs", "timeout": 10 }] }]
+   "PostToolUse": [{ "matcher": "Bash", "hooks": [{ "type": "command", "command": "node ~/.claude/demo-board/claude/pr-hook.mjs", "timeout": 10 }] }]
    ```
 
 3. The `demo-board` mod. Install it like the others (the `claude` folder can stay behind) and add a block for it:
