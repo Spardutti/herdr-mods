@@ -1,16 +1,4 @@
-export const GROUPS = [
-  { id: "needs", label: "NEEDS YOU", statuses: ["blocked", "done"] },
-  { id: "working", label: "WORKING", statuses: ["working"] },
-  { id: "idle", label: "IDLE", statuses: ["idle"] },
-];
-
-export function grouped(list) {
-  return GROUPS
-    .map((g) => ({ ...g, members: g.statuses.flatMap((s) => list.filter((a) => a.status === s)) }))
-    .filter((g) => g.members.length);
-}
-
-const URGENCY = { blocked: 0, done: 0, working: 1, idle: 2 };
+const URGENCY = { blocked: 0, done: 1, working: 2, idle: 3 };
 
 /** Agents grouped by space, most urgent space first; inside one, most urgent chat first. Ties: most recent first. */
 export function byProject(list, changed) {
@@ -20,8 +8,11 @@ export function byProject(list, changed) {
   for (const a of sorted) spaces.set(a.space, [...(spaces.get(a.space) ?? []), a]);
   return [...spaces].map(([id, members]) => ({ id, name: members[0].space_name, members }));
 }
-export function firstNeedingYou(list) {
-  return grouped(list).find((g) => g.id === "needs")?.members[0] ?? null;
+
+/** The first chat drawn that is blocked or done, so the needs key matches the panel. */
+export function firstNeedingYou(list, changed) {
+  const drawn = byProject(list, changed).flatMap((p) => p.members);
+  return drawn.find((a) => URGENCY[a.status] <= URGENCY.done) ?? null;
 }
 
 export function age(ms) {

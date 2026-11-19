@@ -1,26 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { age, byProject, displayName, firstNeedingYou, grouped, track } from "./status.js";
+import { age, byProject, displayName, firstNeedingYou, track } from "./status.js";
 
 const agent = (address, status, extra = {}) => ({ address, status, title: "", tab_name: "1", ...extra });
-
-test("grouped puts agents that need you first, then working, then idle", () => {
-  const list = [agent("a", "idle"), agent("b", "working"), agent("c", "done"), agent("d", "blocked")];
-
-  const groups = grouped(list).map((g) => [g.id, g.members.map((a) => a.address)]);
-
-  assert.deepEqual(groups, [["needs", ["d", "c"]], ["working", ["b"]], ["idle", ["a"]]]);
-});
-
-test("grouped leaves out empty groups", () => {
-  assert.deepEqual(grouped([agent("a", "idle")]).map((g) => g.id), ["idle"]);
-});
-
-test("grouped keeps Herdr's order inside a group", () => {
-  const list = [agent("x", "working"), agent("y", "working")];
-
-  assert.deepEqual(grouped(list)[0].members.map((a) => a.address), ["x", "y"]);
-});
 
 const at = (pairs) => Object.fromEntries(pairs.map(([address, time]) => [address, { at: time }]));
 const projects = (list, changed = {}) => byProject(list, changed).map((p) => [p.name, p.members.map((a) => a.address)]);
@@ -66,14 +48,26 @@ test("displayName falls back to the tab name without a title", () => {
   assert.equal(displayName(agent("a", "idle", { tab_name: "Main" })), "Main");
 });
 
-test("firstNeedingYou picks the top of the needs-you group", () => {
+test("firstNeedingYou picks a blocked chat before a done one", () => {
   const list = [agent("a", "working"), agent("b", "done"), agent("c", "blocked")];
 
-  assert.equal(firstNeedingYou(list).address, "c");
+  assert.equal(firstNeedingYou(list, {}).address, "c");
+});
+
+test("firstNeedingYou picks the chat drawn first, the most recent blocked one", () => {
+  const list = [agent("a", "blocked", { space: "s1" }), agent("b", "blocked", { space: "s2" })];
+
+  assert.equal(firstNeedingYou(list, at([["a", 100], ["b", 200]])).address, "b");
 });
 
 test("firstNeedingYou is null when nothing needs you", () => {
-  assert.equal(firstNeedingYou([agent("a", "working"), agent("b", "idle")]), null);
+  assert.equal(firstNeedingYou([agent("a", "working"), agent("b", "idle")], {}), null);
+});
+
+test("byProject puts a blocked chat above a done one that changed later", () => {
+  const list = [agent("a", "blocked", { space: "s1" }), agent("b", "done", { space: "s1" })];
+
+  assert.deepEqual(projects(list, at([["a", 100], ["b", 200]])), [[undefined, ["a", "b"]]]);
 });
 
 test("track stamps an agent whose status changed", () => {

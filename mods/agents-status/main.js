@@ -15,7 +15,7 @@ export default class AgentsStatus extends View {
     cx.spawn(async () => {
       for (;;) {
         const command = String(await nextCommand()).split(".").pop();
-        const first = command === "needs" ? firstNeedingYou(agents()) : null;
+        const first = command === "needs" ? firstNeedingYou(agents(), this.changed) : null;
         if (first) run("pane.focus", { pane: first.pane });
       }
     });
@@ -34,8 +34,8 @@ export default class AgentsStatus extends View {
     return box.size(11).rounded(6).bg(color);
   }
 
-  meta(a, color, t, now) {
-    const word = LABELS[a.status];
+  meta(a, t, now) {
+    const word = LABELS[a.status], color = t[a.status] ?? t.muted;
     const text = word ?? age(now - (this.changed[a.address]?.at ?? now));
     return div().flex_none().text_size(13).text_color(word ? color : t.muted).when(Boolean(word), (el) => el.font_bold()).child(text);
   }
@@ -50,7 +50,7 @@ export default class AgentsStatus extends View {
       .on_click(() => run("pane.focus", { pane: a.pane }))
       .child(this.mark(a.status, color, t))
       .child(div().flex_1().min_w(0).text_size(13).text_color(t.foreground).child(displayName(a)))
-      .child(this.meta(a, color, t, now));
+      .child(this.meta(a, t, now));
   }
 
   project(p, t, now) {
