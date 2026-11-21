@@ -68,3 +68,17 @@ export function newTracker() {
   let changes = 0;
   return { begin: () => changes, change: () => { changes += 1; }, isFresh: (seen) => seen === changes };
 }
+
+export function withoutPending(waiting, pending) {
+  return waiting.filter((w) => !pending.some((p) => p.terminal === w.terminal && p.command === w.command));
+}
+
+export function newCards() {
+  let waiting = [], pending = [];
+  return {
+    loaded: (list) => { waiting = list; },
+    hide: (item) => { waiting = waiting.filter((w) => w !== item); pending = [...pending, item]; },
+    release: (item) => { pending = pending.filter((p) => p !== item); },
+    shown: () => withoutPending(waiting, pending),
+  };
+}
