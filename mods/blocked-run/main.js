@@ -1,7 +1,7 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { checking, exec, hc, notify, panes, run, settings, spaces, theme } from "herdr";
-import { DROP_SCRIPT, bangLine, forSpace, newTracker, parseWaiting, runThenDrop, withoutPending } from "./waiting.js";
+import { DROP_SCRIPT, bangLine, forSpace, newCards, newTracker, parseWaiting, runThenDrop } from "./waiting.js";
 
 const READ_ALL = 'cat "$HOME"/.config/herdr-blocked/*.json 2>/dev/null';
 
@@ -14,8 +14,7 @@ function currentSpace() {
 
 export default class BlockedRun extends View {
   init(_props, cx) {
-    this.waiting = {};
-    this.pending = {};
+    this.cards = {};
     this.tracker = newTracker();
     if (checking()) return;
     this.load(cx);
@@ -29,20 +28,25 @@ export default class BlockedRun extends View {
     const seen = this.tracker.begin();
     cx.spawn(async (cx) => {
       const r = await exec("sh", ["-c", READ_ALL], { on: machine }).catch(() => null);
-      if (this.tracker.isFresh(seen)) this.waiting[machine ?? ""] = parseWaiting(r?.stdout ?? "");
+      if (this.tracker.isFresh(seen)) this.cardsFor(machine).loaded(parseWaiting(r?.stdout ?? ""));
       this.loading = false;
       cx.notify();
     });
   }
 
+  cardsFor(machine) {
+    this.cards[machine ?? ""] ??= newCards();
+    return this.cards[machine ?? ""];
+  }
+
   // Hidden until its Run or Dismiss ends: the file still holds it until then, so a check would bring it back.
   hide(item, machine) {
     this.tracker.change();
-    this.pending[machine ?? ""] = [...(this.pending[machine ?? ""] ?? []), item];
+    this.cardsFor(machine).hide(item);
   }
 
   release(item, machine) {
-    this.pending[machine ?? ""] = (this.pending[machine ?? ""] ?? []).filter((p) => p !== item);
+    this.cardsFor(machine).release(item);
   }
 
   drop(item, machine) {
@@ -96,7 +100,7 @@ export default class BlockedRun extends View {
 
   render() {
     const t = theme(), { machine, addresses } = currentSpace();
-    const shown = withoutPending(forSpace(this.waiting[machine ?? ""] ?? [], addresses, machine), this.pending[machine ?? ""] ?? []);
+    const shown = forSpace(this.cardsFor(machine).shown(), addresses, machine);
     return v_flex().size_full().min_h(0).bg(t.chrome).px(16).pt(10).gap(8).text_size(13).overflow_y_scrollbar()
       .child(div().text_size(11).font_bold().text_color(t.dim).child("COMMANDS"))
       .when(!shown.length, (el) => el.child(div().text_size(12.5).text_color(t.dim).child("Nothing waiting.")))
