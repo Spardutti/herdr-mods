@@ -1,7 +1,7 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { checking, exec, hc, notify, panes, run, settings, spaces, theme } from "herdr";
-import { DROP_SCRIPT, bangLine, forSpace, newTracker, parseWaiting, runThenDrop } from "./waiting.js";
+import { DROP_SCRIPT, bangLine, forSpace, newTracker, parseWaiting, runThenDrop, withoutPending } from "./waiting.js";
 
 const READ_ALL = 'cat "$HOME"/.config/herdr-blocked/*.json 2>/dev/null';
 
@@ -15,6 +15,7 @@ function currentSpace() {
 export default class BlockedRun extends View {
   init(_props, cx) {
     this.waiting = {};
+    this.pending = {};
     this.tracker = newTracker();
     if (checking()) return;
     this.load(cx);
@@ -34,10 +35,14 @@ export default class BlockedRun extends View {
     });
   }
 
-  // Hidden at once, so a second click can't run it again; any check already under way is ignored.
+  // Hidden until its Run or Dismiss ends: the file still holds it until then, so a check would bring it back.
   hide(item, machine) {
     this.tracker.change();
-    this.waiting[machine ?? ""] = (this.waiting[machine ?? ""] ?? []).filter((w) => w !== item);
+    this.pending[machine ?? ""] = [...(this.pending[machine ?? ""] ?? []), item];
+  }
+
+  release(item, machine) {
+    this.pending[machine ?? ""] = (this.pending[machine ?? ""] ?? []).filter((p) => p !== item);
   }
 
   drop(item, machine) {
@@ -48,7 +53,7 @@ export default class BlockedRun extends View {
   dismiss(item, machine, cx) {
     this.hide(item, machine);
     cx.notify();
-    cx.spawn(async (cx) => { await this.drop(item, machine); cx.notify(); });
+    cx.spawn(async (cx) => { await this.drop(item, machine); this.release(item, machine); cx.notify(); });
   }
 
   runIt(item, machine, cx) {
@@ -59,6 +64,7 @@ export default class BlockedRun extends View {
       const send = (i) => hc(["send", address, bangLine(i.command)]);
       if (await runThenDrop(send, (i) => this.drop(i, machine), item)) run("pane.focus", { terminal: address });
       else notify({ title: "Couldn't run the command", body: "Its terminal didn't take it, so it stays in the list.", level: "error" });
+      this.release(item, machine);
       this.tracker.change();
       cx.notify();
     });
@@ -90,7 +96,7 @@ export default class BlockedRun extends View {
 
   render() {
     const t = theme(), { machine, addresses } = currentSpace();
-    const shown = forSpace(this.waiting[machine ?? ""] ?? [], addresses, machine);
+    const shown = withoutPending(forSpace(this.waiting[machine ?? ""] ?? [], addresses, machine), this.pending[machine ?? ""] ?? []);
     return v_flex().size_full().min_h(0).bg(t.chrome).px(16).pt(10).gap(8).text_size(13).overflow_y_scrollbar()
       .child(div().text_size(11).font_bold().text_color(t.dim).child("COMMANDS"))
       .when(!shown.length, (el) => el.child(div().text_size(12.5).text_color(t.dim).child("Nothing waiting.")))

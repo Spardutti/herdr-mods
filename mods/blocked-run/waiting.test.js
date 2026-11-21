@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { DROP_SCRIPT, bangLine, forSpace, newTracker, parseWaiting, runThenDrop } from "./waiting.js";
+import { DROP_SCRIPT, bangLine, forSpace, newTracker, parseWaiting, runThenDrop, withoutPending } from "./waiting.js";
 
 function machineWith(...queue) {
   const home = mkdtempSync(join(tmpdir(), "blocked-"));
@@ -123,4 +123,14 @@ test("a check that started after a Run is fresh", () => {
 
 test("bangLine puts Claude's shell-mode prefix before the command", () => {
   assert.equal(bangLine("gh pr merge 50"), "! gh pr merge 50");
+});
+
+test("withoutPending hides a command still being run when a check reads it back", () => {
+  const waiting = [item("t2p", "git push", 0), item("t2p", "ls", 1)];
+
+  assert.deepEqual(withoutPending(waiting, [item("t2p", "git push", 0)]), [item("t2p", "ls", 1)]);
+});
+
+test("withoutPending keeps the same command from another terminal", () => {
+  assert.deepEqual(withoutPending([item("t1y", "git push", 0)], [item("t2p", "git push", 0)]), [item("t1y", "git push", 0)]);
 });

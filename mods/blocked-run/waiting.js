@@ -68,3 +68,8 @@ export function newTracker() {
   let changes = 0;
   return { begin: () => changes, change: () => { changes += 1; }, isFresh: (seen) => seen === changes };
 }
+
+/** The commands without those a Run or Dismiss is still working on, so a check can't bring their card back. */
+export function withoutPending(waiting, pending) {
+  return waiting.filter((w) => !pending.some((p) => p.terminal === w.terminal && p.command === w.command));
+}
