@@ -4,7 +4,7 @@ import { checking, exec, focused, panes, props, run as runCommand, spaces, theme
 import { newTodo, pendingCount, randomId, slug, sorted, toggled, withText } from "./claude/todo.js";
 import { READ_ALL, deleteCommand, parseAll, saveCommand } from "./disk.js";
 import { projectName } from "./project.js";
-import { countBadge, listBar, todoRow } from "./rows.js";
+import { countBadge, todoRow } from "./rows.js";
 
 // The focused space's folder and machine, as Herdr's changes mod finds them.
 function location() {
@@ -36,7 +36,6 @@ export default class Todos extends View {
   init(_props, cx) {
     this.countOnly = Boolean(props()?.count);
     this.lists = undefined;
-    this.picked = null;
     this.editing = null;
     this.tracker = newTracker();
     this.writing = 0;
@@ -72,7 +71,6 @@ export default class Todos extends View {
   moved(key) {
     this.key = key;
     this.folderList = undefined;
-    this.picked = null;
     this.editing = null;
     this.tracker.change();
   }
@@ -91,7 +89,7 @@ export default class Todos extends View {
   }
 
   current() {
-    return this.picked ?? this.folderList ?? null;
+    return this.folderList ?? null;
   }
 
   shownList() {
@@ -150,7 +148,7 @@ export default class Todos extends View {
   body(t) {
     const note = (text) => div().text_size(12.5).text_color(t.dim).child(text);
     if (this.lists === undefined) return note("Loading…");
-    if (!this.current()) return note("Open a project folder, or pick a list above.");
+    if (!this.current()) return note("Open a project folder to see its todos.");
     const rows = sorted(this.shownList()?.todos ?? []).map((todo) => this.row(todo, t));
     if (!rows.length) return note("Nothing here yet. Type a todo above, then Enter.");
     return v_flex().id("rows").w_full().flex_1().min_h(0).overflow_y_scroll().children(rows);
@@ -163,12 +161,10 @@ export default class Todos extends View {
       const onOpen = () => runCommand("mod.open", { name: "todos" });
       return countBadge(pendingCount(this.shownList()?.todos ?? []), { t, onOpen });
     }
-    const pick = (name, cx) => { this.picked = name === this.folderList ? null : name; this.editing = null; cx.notify(); };
     return v_flex().id("todos").size_full().min_h(0).p(16).gap(10).bg(t.popover).text_color(t.foreground)
       .child(h_flex().items_center()
         .child(div().flex_1().text_size(11).font_bold().text_color(t.dim).child(`TODOS · ${this.current() ?? "no list"}`))
         .child(div().text_size(11).text_color(t.dim).child("Esc")))
-      .child(listBar(this.lists ?? [], { t, current: this.current(), onPick: pick }))
       .child(Input.new(this.addInput).h(34).px(10).rounded(8).border_1().border_color(t.accent).bg(t.background).text_size(13))
       .child(this.body(t));
   }

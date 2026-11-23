@@ -22,13 +22,6 @@ export function todoRow(todo, { t, on, editor }) {
       .hover((s) => s.text_color(t.foreground)).on_click(on.remove).child("×"));
 }
 
-export function listBar(lists, { t, current, onPick }) {
-  const chip = (name) => div().id(`list-${name}`).px(10).py(3).rounded(10).text_size(11.5).cursor_pointer()
-    .bg(name === current ? t.selected : t.raised).text_color(name === current ? t.foreground : t.muted)
-    .hover((s) => s.opacity(0.88)).on_click((_e, cx) => onPick(name, cx)).child(name);
-  return h_flex().w_full().flex_wrap().gap(6).children(lists.map((l) => chip(l.name)));
-}
-
 /** The floating count; renders nothing at 0 so Herdr hides the float. */
 export function countBadge(count, { t, onOpen }) {
   if (!count) return div();

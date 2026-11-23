@@ -146,7 +146,7 @@ Three parts:
 ## todos
 
 A pop-up todo list for the project you're in. Add a todo, tick it done, click its text to edit it, or × to delete it.
-The chips at the top switch to another list. A project with no list gets one when you add its first todo.
+It shows only the list for the folder you're in. A project with no list gets one when you add its first todo.
 
 Each list is a folder in `~/.config/todos/` on the space's machine, one JSON file per todo, so the window and Claude
 never overwrite each other's changes.
