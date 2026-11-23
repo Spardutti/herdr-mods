@@ -76,15 +76,32 @@ function stepItem(step) {
   return el("li", { className: `step ${step.status}` }, [head, how, stepActions(step)]);
 }
 
+function byFeature(steps) {
+  const groups = new Map();
+  for (const step of steps) {
+    const name = step.feature || step.pr || "Other";
+    if (!groups.has(name)) groups.set(name, []);
+    groups.get(name).push(step);
+  }
+  return [...groups];
+}
+
+function groupItems(steps) {
+  return byFeature(steps).map(([name, items]) => el("li", { className: "group" }, [
+    el("h3", { className: "group-title", textContent: name }),
+    el("ol", { className: "list" }, items.map(stepItem)),
+  ]));
+}
+
 function renderSteps() {
   const drafts = [...document.querySelectorAll(".step-note")].map((input) => [input.id, input.value]);
   const focused = state.focusStep ? `note-${state.focusStep}` : document.activeElement?.id;
   state.focusStep = null;
   const of = (status) => state.steps.filter((s) => s.status === status);
   const open = of("todo"), changes = of("changes"), done = of("approved");
-  $("todo").replaceChildren(...open.map(stepItem));
-  $("changes").replaceChildren(...changes.map(stepItem));
-  $("done").replaceChildren(...done.map(stepItem));
+  $("todo").replaceChildren(...groupItems(open));
+  $("changes").replaceChildren(...groupItems(changes));
+  $("done").replaceChildren(...groupItems(done));
   $("todo-count").textContent = open.length ? String(open.length) : "";
   $("changes-count").textContent = String(changes.length);
   $("done-count").textContent = String(done.length);

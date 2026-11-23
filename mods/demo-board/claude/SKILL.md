@@ -29,7 +29,8 @@ Remove the project's line from `boards.tsv`. Keep the artifact; ask before delet
 
 Skip a release PR (dev → main): its steps came from the feature PRs.
 Write one `steps/<pr number>-<n>` document per thing a person can see and try, 1 to 4 per PR:
-`{ "pr": "#<number>", "title": "<what to show, ≤8 words>", "how": "<where to click and what appears>", "status": "todo", "note": "", "added": "<ISO time>" }`.
+`{ "pr": "#<number>", "feature": "<feature name, ≤4 words>", "title": "<what to show, ≤8 words>", "how": "<where to click and what appears>", "status": "todo", "note": "", "added": "<ISO time>" }`.
+The board groups steps by `feature`. List `steps` first and reuse an existing feature name word for word when the PR adds to it.
 Use a batch. Write for the customer or PO, not for a developer. No step for refactors, tests or tooling.
 
 ## Read the demo notes
