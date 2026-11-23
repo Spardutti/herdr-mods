@@ -1,5 +1,6 @@
 const $ = (id) => document.getElementById(id);
 const state = { steps: [], notes: [], db: null };
+const TRASH_ICON = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 4h10M6.5 4V2.5h3V4M4.5 4l.6 9.5h5.8l.6-9.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 function el(tag, attrs, children) {
   const node = document.createElement(tag);
@@ -100,7 +101,22 @@ function noteItem(note) {
     el("span", { className: "note-time", textContent: time }),
     el("span", { className: "note-text", textContent: note.text }),
     note.read ? el("span", { className: "note-tag", textContent: "Claude read it" }) : null,
+    deleteNoteButton(note),
   ]);
+}
+
+function deleteNoteButton(note) {
+  const button = el("button", { className: "icon", type: "button", title: "Delete note", ariaLabel: "Delete note", innerHTML: TRASH_ICON });
+  button.onclick = () => {
+    if (button.dataset.armed !== "1") {
+      button.dataset.armed = "1";
+      button.textContent = "Delete?";
+      setTimeout(() => { button.dataset.armed = ""; button.innerHTML = TRASH_ICON; }, 4000);
+      return;
+    }
+    save(state.db.collection("notes").doc(note.id), (r) => r.delete());
+  };
+  return button;
 }
 
 function renderNotes() {
