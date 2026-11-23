@@ -21,6 +21,10 @@ Board source: `$HOME/.claude/demo-board/board/` (expand `$HOME` to a full path b
 4. Write `meta/board` = `{ "project": "<project>" }` with ArtifactData.
 5. Append `<project>\t<url>` to `boards.tsv` (`mkdir -p ~/.config/demo-board` first).
 
+## Update a board after the board code changes
+
+For each line in `boards.tsv`: copy the board folder to `<scratchpad>/demo-board-<project>/`, read the artifact by its URL, then publish `board.html` with the same `files` and `url` set to that URL.
+
 ## Turn off
 
 Remove the project's line from `boards.tsv`. Keep the artifact; ask before deleting it.
