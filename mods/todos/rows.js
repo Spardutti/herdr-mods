@@ -28,11 +28,3 @@ export function listBar(lists, { t, current, onPick }) {
     .hover((s) => s.opacity(0.88)).on_click((_e, cx) => onPick(name, cx)).child(name);
   return h_flex().w_full().flex_wrap().gap(6).children(lists.map((l) => chip(l.name)));
 }
-
-/** Shown when the folder has no list yet. */
-export function noList(name, { t, onCreate }) {
-  return h_flex().w_full().gap(10).items_center().py(8)
-    .child(div().flex_1().text_size(12.5).text_color(t.dim).child(`No todos for ${name}.`))
-    .child(h_flex().id("create").h(28).px(14).items_center().rounded(7).cursor_pointer().text_size(12).font_semibold()
-      .bg(t.solid).text_color(t.solid_foreground).hover((s) => s.opacity(0.88)).on_click(onCreate).child("Create"));
-}

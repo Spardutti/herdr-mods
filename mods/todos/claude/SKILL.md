@@ -25,7 +25,7 @@ An `<id>` can be its first few characters, as long as only one todo starts with 
 
 ## Pick the list
 
-1. Get the project name: the folder holding the git repo (`git rev-parse --show-toplevel`), else the current folder.
+1. Get the project name: run `git rev-parse --path-format=absolute --git-common-dir`, drop a trailing `/.git`, and take the last folder. A worktree then shares its main repo's list. Outside git, use the current folder's name.
 2. Make it lowercase, with dashes for anything but letters and digits. That is the list name.
 3. Run `lists`. If the name is there, use it.
 4. If not, offer to `create` it. Don't create it without asking.

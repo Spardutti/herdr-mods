@@ -19,7 +19,7 @@ function readTodos(dir) {
   return readdirSync(dir).filter((f) => f.endsWith(".json")).flatMap((f) => {
     try {
       const value = JSON.parse(readFileSync(join(dir, f), "utf8"));
-      return isTodo(value) ? [value] : [];
+      return isTodo(value) && f === `${value.id}.json` ? [value] : [];
     } catch {
       return [];
     }

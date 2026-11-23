@@ -2,9 +2,9 @@ import { View, div } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
 import { checking, exec, focused, panes, spaces, theme } from "herdr";
 import { newTodo, randomId, slug, sorted, toggled, withText } from "./claude/todo.js";
-import { READ_ALL, createListCommand, deleteCommand, parseAll, saveCommand } from "./disk.js";
+import { READ_ALL, deleteCommand, parseAll, saveCommand } from "./disk.js";
 import { projectName } from "./project.js";
-import { listBar, noList, todoRow } from "./rows.js";
+import { listBar, todoRow } from "./rows.js";
 
 // The focused space's folder and machine, as Herdr's changes mod finds them.
 function location() {
@@ -18,6 +18,15 @@ const run = async (argv, { cwd, on }) => {
   return r?.code === 0 ? r.stdout : undefined;
 };
 
+/** The list for the space's folder; undefined when git could not be asked, so the next load tries again. */
+async function folderListAt(where) {
+  if (!where.cwd) return null;
+  const argv = ["rev-parse", "--path-format=absolute", "--git-common-dir"];
+  const r = await exec("git", argv, where).catch(() => null);
+  if (!r) return undefined;
+  return slug(projectName(r.code === 0 ? r.stdout : undefined, where.cwd)) || null;
+}
+
 function newTracker() {
   let changes = 0;
   return { begin: () => changes, change: () => { changes += 1; }, isFresh: (seen) => seen === changes };
@@ -29,6 +38,7 @@ export default class Todos extends View {
     this.picked = null;
     this.editing = null;
     this.tracker = newTracker();
+    this.writing = 0;
     this.addInput = InputState.new({ placeholder: "Add a todo, then Enter" });
     this.addInput.on("submit", (_e, cx) => this.add(cx));
     if (checking()) return;
@@ -40,29 +50,36 @@ export default class Todos extends View {
 
   load(cx) {
     const where = location(), key = JSON.stringify([where.cwd, where.on]);
-    if (key !== this.key) { this.key = key; this.folderList = undefined; this.tracker.change(); }
+    if (key !== this.key) this.moved(key);
     const seen = this.tracker.begin();
     cx.spawn(async (cx) => {
-      if (this.folderList === undefined) await this.findFolderList(where);
+      if (this.folderList === undefined) {
+        const name = await folderListAt(where);
+        if (this.key === key) this.folderList = name;
+      }
       const out = await run(READ_ALL, where);
-      if (!this.tracker.isFresh(seen)) return;
+      if (!this.tracker.isFresh(seen) || this.writing > 0) return;
       if (out !== undefined || this.lists === undefined) this.lists = parseAll(out);
       cx.notify();
     });
   }
 
-  async findFolderList(where) {
-    if (!where.cwd) { this.folderList = null; return; }
-    const commonDir = await run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], where);
-    this.folderList = slug(projectName(commonDir, where.cwd)) || null;
+  moved(key) {
+    this.key = key;
+    this.folderList = undefined;
+    this.picked = null;
+    this.editing = null;
+    this.tracker.change();
   }
 
   write(argv, cx) {
     this.tracker.change();
     cx.notify();
     const where = location();
+    this.writing += 1;
     cx.spawn(async (cx) => {
       await run(argv, where);
+      this.writing -= 1;
       this.tracker.change();
       this.load(cx);
     });
@@ -76,32 +93,30 @@ export default class Todos extends View {
     return this.lists?.find((l) => l.name === this.current()) ?? null;
   }
 
-  replace(todo) {
+  save(todo, cx) {
     const list = this.shownList();
+    if (!list) return;
     list.todos = [todo, ...list.todos.filter((t) => t.id !== todo.id)];
-    return saveCommand(list.name, todo);
+    this.write(saveCommand(list.name, todo), cx);
   }
 
   add(cx) {
-    const text = this.addInput.value().trim(), list = this.shownList();
-    if (!text || !list) return;
+    const text = this.addInput.value().trim(), name = this.current();
+    if (!text || !name) return;
     this.addInput.set_value("");
-    this.write(this.replace(newTodo(text, { id: randomId(), now: new Date().toISOString() })), cx);
-  }
-
-  create(cx) {
-    const name = this.current();
-    this.lists = [...this.lists, { name, todos: [] }];
-    this.write(createListCommand(name), cx);
+    if (!this.shownList()) this.lists = [...(this.lists ?? []), { name, todos: [] }];
+    this.save(newTodo(text, { id: randomId(), now: new Date().toISOString() }), cx);
   }
 
   remove(todo, cx) {
     const list = this.shownList();
+    if (!list) return;
     list.todos = list.todos.filter((t) => t.id !== todo.id);
     this.write(deleteCommand(list.name, todo.id), cx);
   }
 
   startEdit(todo, cx) {
+    if (this.editing) this.finishEdit(cx);
     const input = InputState.new({ value: todo.text });
     input.on("submit", (_e, cx) => this.finishEdit(cx));
     input.focus();
@@ -113,13 +128,13 @@ export default class Todos extends View {
     const { id, input } = this.editing, text = input.value().trim();
     const todo = this.shownList()?.todos.find((t) => t.id === id);
     this.editing = null;
-    if (todo && text && text !== todo.text) this.write(this.replace(withText(todo, text)), cx);
+    if (todo && text && text !== todo.text) this.save(withText(todo, text), cx);
     else cx.notify();
   }
 
   row(todo, t) {
     const on = {
-      toggle: (_e, cx) => this.write(this.replace(toggled(todo, new Date().toISOString())), cx),
+      toggle: (_e, cx) => this.save(toggled(todo, new Date().toISOString()), cx),
       edit: (_e, cx) => this.startEdit(todo, cx),
       remove: (_e, cx) => this.remove(todo, cx),
     };
@@ -130,13 +145,10 @@ export default class Todos extends View {
   body(t) {
     const note = (text) => div().text_size(12.5).text_color(t.dim).child(text);
     if (this.lists === undefined) return note("Loading…");
-    const current = this.current(), list = this.shownList();
-    if (!current) return note("Open a project folder, or pick a list above.");
-    if (!list) return noList(current, { t, onCreate: (_e, cx) => this.create(cx) });
-    const rows = sorted(list.todos).map((todo) => this.row(todo, t));
-    return v_flex().w_full().flex_1().min_h(0).gap(8)
-      .child(Input.new(this.addInput).h(34).px(10).rounded(8).border_1().border_color(t.input).bg(t.background).text_size(13))
-      .child(rows.length ? v_flex().id("rows").flex_1().min_h(0).overflow_y_scroll().children(rows) : note("Nothing here yet."));
+    if (!this.current()) return note("Open a project folder, or pick a list above.");
+    const rows = sorted(this.shownList()?.todos ?? []).map((todo) => this.row(todo, t));
+    if (!rows.length) return note("Nothing here yet. Type a todo above, then Enter.");
+    return v_flex().id("rows").w_full().flex_1().min_h(0).overflow_y_scroll().children(rows);
   }
 
   render(cx) {
@@ -148,6 +160,7 @@ export default class Todos extends View {
         .child(div().flex_1().text_size(11).font_bold().text_color(t.dim).child(`TODOS · ${this.current() ?? "no list"}`))
         .child(div().text_size(11).text_color(t.dim).child("Esc")))
       .child(listBar(this.lists ?? [], { t, current: this.current(), onPick: pick }))
+      .child(Input.new(this.addInput).h(34).px(10).rounded(8).border_1().border_color(t.accent).bg(t.background).text_size(13))
       .child(this.body(t));
   }
 }

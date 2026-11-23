@@ -1,5 +1,5 @@
 import { test, beforeEach } from "node:test";
-import { mkdtempSync, readdirSync, readFileSync, existsSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, existsSync, writeFileSync, renameSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect } from "../../../test-support/expect.js";
@@ -101,4 +101,11 @@ test("list skips a file in the list that is not a todo", () => {
   run(["create", "app"]);
   writeFileSync(join(dir, "app", "junk.json"), "{nope");
   expect(run(["list", "app"])).toBe("Nothing pending in app.");
+});
+
+test("a todo file renamed away from its id is skipped, so delete never hits a missing file", () => {
+  run(["create", "app"]);
+  const id = addedId(run(["add", "app", "buy milk"]));
+  renameSync(join(dir, "app", `${id}.json`), join(dir, "app", "copy.json"));
+  expect(failure(["delete", "app", id])).toBe(`No single todo starts with ${id}. Run \`list\` to see ids.`);
 });

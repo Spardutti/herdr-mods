@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync } from 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect } from "../../test-support/expect.js";
-import { READ_ALL, createListCommand, deleteCommand, parseAll, saveCommand } from "./disk.js";
+import { READ_ALL, deleteCommand, parseAll, saveCommand } from "./disk.js";
 
 const todo = (over = {}) => ({ id: "abcd1234", text: "buy milk", done: false, createdAt: "2026-11-23T10:00:00Z", doneAt: null, ...over });
 
@@ -15,16 +15,16 @@ function runIn(home, argv) {
 const tempHome = () => mkdtempSync(join(tmpdir(), "todos-"));
 
 test("parseAll groups todos under their list and sorts lists by name", () => {
-  const out = `L\tbeta\nL\talpha\nT\talpha\t${JSON.stringify(todo())}\n`;
+  const out = `L\tbeta\nL\talpha\nT\talpha\tabcd1234\t${JSON.stringify(todo())}\n`;
   expect(parseAll(out)).toEqual([{ name: "alpha", todos: [todo()] }, { name: "beta", todos: [] }]);
 });
 
 test("parseAll skips a todo line whose json does not parse", () => {
-  expect(parseAll("L\tapp\nT\tapp\t{nope\n")).toEqual([{ name: "app", todos: [] }]);
+  expect(parseAll("L\tapp\nT\tapp\tabcd1234\t{nope\n")).toEqual([{ name: "app", todos: [] }]);
 });
 
 test("parseAll skips a file that is json but not a todo", () => {
-  expect(parseAll('L\tapp\nT\tapp\t{"id":"x"}\n')).toEqual([{ name: "app", todos: [] }]);
+  expect(parseAll('L\tapp\nT\tapp\tx\t{"id":"x"}\n')).toEqual([{ name: "app", todos: [] }]);
 });
 
 test("parseAll of empty output is no lists", () => {
@@ -43,9 +43,9 @@ test("saveCommand refuses an id that could leave the folder", () => {
   expect(message).toBe("Bad todo id");
 });
 
-test("createListCommand refuses a name with no letters or digits", () => {
+test("saveCommand refuses a list name with no letters or digits", () => {
   let message;
-  try { createListCommand("!!!"); } catch (e) { message = e.message; }
+  try { saveCommand("!!!", todo()); } catch (e) { message = e.message; }
   expect(message).toBe("Bad list name");
 });
 
@@ -66,7 +66,7 @@ test("deleteCommand removes only that todo's file", () => {
 test("READ_ALL reads back saved todos and empty lists", () => {
   const home = tempHome();
   runIn(home, saveCommand("app", todo()));
-  runIn(home, createListCommand("empty"));
+  mkdirSync(join(home, ".config/todos/empty"), { recursive: true });
   expect(parseAll(runIn(home, READ_ALL))).toEqual([{ name: "app", todos: [todo()] }, { name: "empty", todos: [] }]);
 });
 
@@ -82,5 +82,12 @@ test("READ_ALL skips a non-json file in a list", () => {
 });
 
 test("parseAll skips a todo whose list line never came", () => {
-  expect(parseAll(`T\tghost\t${JSON.stringify(todo())}\n`)).toEqual([]);
+  expect(parseAll(`T\tghost\tabcd1234\t${JSON.stringify(todo())}\n`)).toEqual([]);
+});
+
+test("READ_ALL skips a todo file whose name is not its id", () => {
+  const home = tempHome();
+  runIn(home, saveCommand("app", todo()));
+  writeFileSync(join(home, ".config/todos/app/copy.json"), JSON.stringify(todo()));
+  expect(parseAll(runIn(home, READ_ALL))).toEqual([{ name: "app", todos: [todo()] }]);
 });

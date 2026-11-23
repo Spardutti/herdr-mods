@@ -2,17 +2,17 @@ import { ID_PATTERN, isTodo, slug } from "./claude/todo.js";
 
 const ROOT = '"$HOME/.config/todos"';
 
-/** Prints "L\t<list>" per list folder, then "T\t<list>\t<todo json>" per todo file. */
+/** Prints "L\t<list>" per list folder, then "T\t<list>\t<file name>\t<todo json>" per todo file. */
 export const READ_ALL = ["sh", "-c", `d=${ROOT}; [ -d "$d" ] || exit 0
 for l in "$d"/*/; do
   [ -d "$l" ] || continue; n=$(basename "$l"); printf 'L\\t%s\\n' "$n"
-  for f in "$l"*.json; do if [ -f "$f" ]; then printf 'T\\t%s\\t%s\\n' "$n" "$(tr -d '\\n' < "$f")"; fi; done
+  for f in "$l"*.json; do if [ -f "$f" ]; then printf 'T\\t%s\\t%s\\t%s\\n' "$n" "$(basename "$f" .json)" "$(tr -d '\\n' < "$f")"; fi; done
 done`];
 
-function parseTodo(json) {
+function parseTodo(file, json) {
   try {
     const value = JSON.parse(json);
-    return isTodo(value) ? value : null;
+    return isTodo(value) && value.id === file ? value : null;
   } catch {
     return null;
   }
@@ -22,10 +22,10 @@ function parseTodo(json) {
 export function parseAll(stdout) {
   const lists = new Map();
   for (const line of (stdout ?? "").split("\n")) {
-    const [kind, name, json] = line.split("\t");
+    const [kind, name, file, json] = line.split("\t");
     if (!name) continue;
     if (kind === "L" && !lists.has(name)) lists.set(name, []);
-    const todo = kind === "T" ? parseTodo(json) : null;
+    const todo = kind === "T" ? parseTodo(file, json) : null;
     if (todo && lists.has(name)) lists.get(name).push(todo);
   }
   return [...lists].map(([name, todos]) => ({ name, todos })).sort((a, b) => a.name.localeCompare(b.name));
@@ -40,10 +40,6 @@ function checkedList(list) {
 function checkedId(id) {
   if (!ID_PATTERN.test(id)) throw new Error("Bad todo id");
   return id;
-}
-
-export function createListCommand(list) {
-  return ["sh", "-c", `mkdir -p ${ROOT}/"$1"`, "sh", checkedList(list)];
 }
 
 /** Writes one todo file atomically: tmp, then mv. */
