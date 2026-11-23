@@ -9,6 +9,7 @@ Mods for the [Herdr](https://herdr.dev) desktop app, plus two helpers for runnin
 | [`dev-apps`](#dev-apps) | The space's browser apps: running or not, a link, Start and Stop. | Linux or WSL spaces with systemd |
 | [`blocked-run`](#blocked-run) | Commands auto mode blocked, or Claude asked you to run, with a **Run it** button. | Linux or WSL spaces |
 | [`demo-board`](#demo-board) | A per-project board of what to show at the next demo: Claude adds steps on each PR, you approve them and take notes. | Linux or WSL spaces |
+| [`todos`](#todos) | A pop-up todo list per project, on `ctrl-shift-y`. Claude reads and writes the same lists. | Linux or WSL spaces |
 | [`resume`](#resume) | Brings each Claude Code chat back after a reboot or crash. | Linux or WSL |
 | [`shutdown`](#shutdown) | Shuts WSL down 2 minutes after you close Herdr. | Windows + WSL |
 
@@ -141,6 +142,28 @@ Three parts:
 
 3. The `demo-board` mod. Install it like the others (the `claude` folder can stay behind) and add a block for it:
    `{ "id": "demo", "type": "block", "size": { "px": 96 }, "content": { "mod": "demo-board" } }`
+
+## todos
+
+A pop-up todo list for the project you're in. Add a todo, tick it done, click its text to edit it, or × to delete it.
+The chips at the top switch to another list. A project with no list shows a **Create** button.
+
+Each list is a folder in `~/.config/todos/` on the space's machine, one JSON file per todo, so the window and Claude
+never overwrite each other's changes.
+
+1. Install the mod like the others. It needs no block in your layout.
+2. Add a key to the `"global"` section of `~/.config/herdr-app/keys.json`:
+
+   ```json
+   "ctrl-shift-y": "mod.open:todos"
+   ```
+
+3. Give Claude the skill, from the root of this clone:
+
+   ```sh
+   mkdir -p ~/.claude/skills/todos
+   cp mods/todos/claude/SKILL.md mods/todos/claude/todos.mjs mods/todos/claude/todo.js ~/.claude/skills/todos/
+   ```
 
 ## resume
 
