@@ -109,3 +109,9 @@ test("a todo file renamed away from its id is skipped, so delete never hits a mi
   renameSync(join(dir, "app", `${id}.json`), join(dir, "app", "copy.json"));
   expect(failure(["delete", "app", id])).toBe(`No single todo starts with ${id}. Run \`list\` to see ids.`);
 });
+
+test("delete with no id is refused, even when the list holds one todo", () => {
+  run(["create", "app"]);
+  const id = addedId(run(["add", "app", "buy milk"]));
+  expect([failure(["delete", "app"]), existsSync(join(dir, "app", `${id}.json`))]).toEqual(["Missing the todo id.", true]);
+});

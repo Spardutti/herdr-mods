@@ -91,3 +91,10 @@ test("READ_ALL skips a todo file whose name is not its id", () => {
   writeFileSync(join(home, ".config/todos/app/copy.json"), JSON.stringify(todo()));
   expect(parseAll(runIn(home, READ_ALL))).toEqual([{ name: "app", todos: [todo()] }]);
 });
+
+test("READ_ALL keeps a todo whose file is indented with tabs", () => {
+  const home = tempHome();
+  mkdirSync(join(home, ".config/todos/app"), { recursive: true });
+  writeFileSync(join(home, ".config/todos/app/abcd1234.json"), JSON.stringify(todo(), null, "\t"));
+  expect(parseAll(runIn(home, READ_ALL))).toEqual([{ name: "app", todos: [todo()] }]);
+});

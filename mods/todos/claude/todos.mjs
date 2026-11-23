@@ -33,7 +33,8 @@ function save(dir, todo) {
 }
 
 function pick(dir, prefix) {
-  const todo = findById(readTodos(dir), prefix ?? "");
+  if (!prefix) throw new Error("Missing the todo id.");
+  const todo = findById(readTodos(dir), prefix);
   if (!todo) throw new Error(`No single todo starts with ${prefix}. Run \`list\` to see ids.`);
   return todo;
 }

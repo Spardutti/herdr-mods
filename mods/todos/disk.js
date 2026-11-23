@@ -18,16 +18,19 @@ function parseTodo(file, json) {
   }
 }
 
+function addLine(lists, line) {
+  const [kind, name, file, ...rest] = line.split("\t");
+  const json = rest.join("\t");
+  if (kind === "L" && name) lists.set(name, lists.get(name) ?? []);
+  if (kind !== "T" || !lists.has(name)) return;
+  const todo = parseTodo(file, json);
+  if (todo) lists.get(name).push(todo);
+}
+
 /** { name, todos }[] sorted by name; bad lines are skipped. */
 export function parseAll(stdout) {
   const lists = new Map();
-  for (const line of (stdout ?? "").split("\n")) {
-    const [kind, name, file, json] = line.split("\t");
-    if (!name) continue;
-    if (kind === "L" && !lists.has(name)) lists.set(name, []);
-    const todo = kind === "T" ? parseTodo(file, json) : null;
-    if (todo && lists.has(name)) lists.get(name).push(todo);
-  }
+  for (const line of (stdout ?? "").split("\n")) addLine(lists, line);
   return [...lists].map(([name, todos]) => ({ name, todos })).sort((a, b) => a.name.localeCompare(b.name));
 }
 
