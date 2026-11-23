@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, w
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { findById, isTodo, newTodo, randomId, slug, sorted, toggled, withText } from "./todo.js";
+import { findById, isTodo, newTodo, pendingCount, randomId, slug, sorted, toggled, withText } from "./todo.js";
 
 const root = () => process.env.TODOS_DIR ?? join(homedir(), ".config/todos");
 
@@ -48,7 +48,7 @@ const now = () => new Date().toISOString();
 function lists() {
   if (!existsSync(root())) return "No lists yet.";
   const names = readdirSync(root(), { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort();
-  const lines = names.map((n) => `${n}\t${readTodos(join(root(), n)).filter((t) => !t.done).length} pending`);
+  const lines = names.map((n) => `${n}\t${pendingCount(readTodos(join(root(), n)))} pending`);
   return lines.join("\n") || "No lists yet.";
 }
 

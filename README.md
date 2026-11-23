@@ -158,7 +158,14 @@ never overwrite each other's changes.
    "ctrl-shift-y": "mod.open:todos"
    ```
 
-3. Give Claude the skill, from the root of this clone:
+3. Optional: a small count of todos left, over the top-right of the terminal. Click it to open the list. In your layout,
+   on the block with `"tab": "active"` (id `main` in Herdr's default), add:
+
+   ```json
+   "floating": [{ "id": "todos-count", "content": { "mod": "todos", "props": { "count": true } }, "edge": "top", "align": "end" }]
+   ```
+
+4. Give Claude the skill, from the root of this clone:
 
    ```sh
    mkdir -p ~/.claude/skills/todos

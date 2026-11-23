@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import { expect } from "../../../test-support/expect.js";
-import { findById, isTodo, newTodo, randomId, slug, sorted, toggled, withText } from "./todo.js";
+import { findById, isTodo, newTodo, pendingCount, randomId, slug, sorted, toggled, withText } from "./todo.js";
 
 const todo = (over = {}) => ({ id: "abcd1234", text: "buy milk", done: false, createdAt: "2026-11-23T10:00:00Z", doneAt: null, ...over });
 
@@ -69,4 +69,12 @@ test("sorted puts an older pending todo before a newer done one", () => {
 
 test("isTodo accepts a whole todo", () => {
   expect(isTodo(todo())).toBe(true);
+});
+
+test("pendingCount counts only todos not done", () => {
+  expect(pendingCount([todo(), todo({ id: "b", done: true }), todo({ id: "c" })])).toBe(2);
+});
+
+test("pendingCount of no todos is 0", () => {
+  expect(pendingCount([])).toBe(0);
 });

@@ -25,6 +25,10 @@ export function sorted(todos) {
   return [...todos].sort((a, b) => Number(a.done) - Number(b.done) || b.createdAt.localeCompare(a.createdAt));
 }
 
+export function pendingCount(todos) {
+  return todos.filter((t) => !t.done).length;
+}
+
 /** The one todo whose id starts with `prefix`, else null. */
 export function findById(todos, prefix) {
   const hits = todos.filter((t) => t.id.startsWith(prefix));

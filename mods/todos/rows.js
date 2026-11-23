@@ -28,3 +28,11 @@ export function listBar(lists, { t, current, onPick }) {
     .hover((s) => s.opacity(0.88)).on_click((_e, cx) => onPick(name, cx)).child(name);
   return h_flex().w_full().flex_wrap().gap(6).children(lists.map((l) => chip(l.name)));
 }
+
+/** The floating count; renders nothing at 0 so Herdr hides the float. */
+export function countBadge(count, { t, onOpen }) {
+  if (!count) return div();
+  return h_flex().id("todo-count").h(24).px(10).gap(6).items_center().cursor_pointer().on_click(onOpen)
+    .child(div().size(8).rounded(4).bg(t.accent))
+    .child(div().text_size(12).font_semibold().text_color(t.foreground).child(`${count} ${count === 1 ? "todo" : "todos"}`));
+}

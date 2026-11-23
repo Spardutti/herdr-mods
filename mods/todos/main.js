@@ -1,10 +1,10 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
-import { checking, exec, focused, panes, spaces, theme } from "herdr";
-import { newTodo, randomId, slug, sorted, toggled, withText } from "./claude/todo.js";
+import { checking, exec, focused, panes, props, run as runCommand, spaces, theme } from "herdr";
+import { newTodo, pendingCount, randomId, slug, sorted, toggled, withText } from "./claude/todo.js";
 import { READ_ALL, deleteCommand, parseAll, saveCommand } from "./disk.js";
 import { projectName } from "./project.js";
-import { listBar, todoRow } from "./rows.js";
+import { countBadge, listBar, todoRow } from "./rows.js";
 
 // The focused space's folder and machine, as Herdr's changes mod finds them.
 function location() {
@@ -34,6 +34,7 @@ function newTracker() {
 
 export default class Todos extends View {
   init(_props, cx) {
+    this.countOnly = Boolean(props()?.count);
     this.lists = undefined;
     this.picked = null;
     this.editing = null;
@@ -42,10 +43,14 @@ export default class Todos extends View {
     this.addInput = InputState.new({ placeholder: "Add a todo, then Enter" });
     this.addInput.on("submit", (_e, cx) => this.add(cx));
     if (checking()) return;
-    this.addInput.focus();
-    cx.timer.after(600, () => this.addInput.focus());
+    if (!this.countOnly) this.focusAdd(cx);
     this.load(cx);
     cx.timer.every(3000, (cx) => this.load(cx));
+  }
+
+  focusAdd(cx) {
+    this.addInput.focus();
+    cx.timer.after(600, () => this.addInput.focus());
   }
 
   load(cx) {
@@ -154,6 +159,10 @@ export default class Todos extends View {
   render(cx) {
     const t = theme(), { cwd, on } = location();
     if (JSON.stringify([cwd, on]) !== this.key && !checking()) this.load(cx);
+    if (this.countOnly) {
+      const onOpen = () => runCommand("mod.open", { name: "todos" });
+      return countBadge(pendingCount(this.shownList()?.todos ?? []), { t, onOpen });
+    }
     const pick = (name, cx) => { this.picked = name === this.folderList ? null : name; this.editing = null; cx.notify(); };
     return v_flex().id("todos").size_full().min_h(0).p(16).gap(10).bg(t.popover).text_color(t.foreground)
       .child(h_flex().items_center()
