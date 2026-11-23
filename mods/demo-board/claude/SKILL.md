@@ -21,6 +21,10 @@ Board source: `$HOME/.claude/demo-board/board/` (expand `$HOME` to a full path b
 4. Write `meta/board` = `{ "project": "<project>" }` with ArtifactData.
 5. Append `<project>\t<url>` to `boards.tsv` (`mkdir -p ~/.config/demo-board` first).
 
+## Update a board after the board code changes
+
+For each line in `boards.tsv`: copy the board folder to `<scratchpad>/demo-board-<project>/`, read the artifact by its URL, then publish `board.html` with the same `files` and `url` set to that URL.
+
 ## Turn off
 
 Remove the project's line from `boards.tsv`. Keep the artifact; ask before deleting it.
@@ -29,7 +33,8 @@ Remove the project's line from `boards.tsv`. Keep the artifact; ask before delet
 
 Skip a release PR (dev → main): its steps came from the feature PRs.
 Write one `steps/<pr number>-<n>` document per thing a person can see and try, 1 to 4 per PR:
-`{ "pr": "#<number>", "title": "<what to show, ≤8 words>", "how": "<where to click and what appears>", "status": "todo", "note": "", "added": "<ISO time>" }`.
+`{ "pr": "#<number>", "feature": "<feature name, ≤4 words>", "title": "<what to show, ≤8 words>", "how": "<where to click and what appears>", "status": "todo", "note": "", "added": "<ISO time>" }`.
+The board groups steps by `feature`. List `steps` first and reuse an existing feature name word for word when the PR adds to it.
 Use a batch. Write for the customer or PO, not for a developer. No step for refactors, tests or tooling.
 
 ## Read the demo notes
