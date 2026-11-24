@@ -1,6 +1,6 @@
 ---
 name: todos
-description: Read and write the user's todo lists, the ones shown in Herdr's Todos window. Use when the user mentions a todo, "add this to my list", "what's left", or asks what to work on next.
+description: Read and write the user's todo lists, the ones shown in Herdr's Todos window. Use when the user mentions a todo, names one by number like "#2", says "add this to my list" or "what's left", or asks what to work on next.
 ---
 
 # Todos
