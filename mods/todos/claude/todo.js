@@ -20,9 +20,10 @@ export function toggled(todo, now) {
   return todo.done ? { ...todo, done: false, doneAt: null } : { ...todo, done: true, doneAt: now };
 }
 
-/** Pending first, newest first inside each group. */
+/** Pending first, newest first inside each group, then by id so every reader numbers ties alike. */
 export function sorted(todos) {
-  return [...todos].sort((a, b) => Number(a.done) - Number(b.done) || b.createdAt.localeCompare(a.createdAt));
+  return [...todos].sort((a, b) => Number(a.done) - Number(b.done) || b.createdAt.localeCompare(a.createdAt)
+    || a.id.localeCompare(b.id));
 }
 
 export function pendingCount(todos) {

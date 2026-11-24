@@ -29,6 +29,11 @@ test("sorted puts pending first, newest first inside each group", () => {
   expect(sorted(input).map((t) => t.id)).toEqual(["p11", "p9", "d"]);
 });
 
+test("sorted gives todos made at the same time the same order, whatever order they come in", () => {
+  const [a, b] = [todo({ id: "a", createdAt: "10" }), todo({ id: "b", createdAt: "10" })];
+  expect([sorted([a, b]), sorted([b, a])].map((list) => list.map((t) => t.id))).toEqual([["a", "b"], ["a", "b"]]);
+});
+
 test("sorted leaves the input array in its first order", () => {
   const input = [todo({ id: "a", createdAt: "09" }), todo({ id: "b", createdAt: "11" })];
   sorted(input);

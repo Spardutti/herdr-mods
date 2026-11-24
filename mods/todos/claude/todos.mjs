@@ -63,7 +63,7 @@ function create(name) {
 
 function list(name) {
   const pending = sorted(readTodos(listDir(name))).filter((t) => !t.done);
-  return pending.map((t) => `${t.id}  ${t.text.split("\n")[0]}`).join("\n") || `Nothing pending in ${slug(name)}.`;
+  return pending.map((t, i) => `#${i + 1}  ${t.id}  ${t.text.split("\n")[0]}`).join("\n") || `Nothing pending in ${slug(name)}.`;
 }
 
 const COMMANDS = {

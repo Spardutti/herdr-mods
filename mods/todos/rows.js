@@ -8,8 +8,8 @@ function checkbox(todo, { t, onToggle }) {
     .on_click(onToggle).child(todo.done ? "✓" : "");
 }
 
-/** Checkbox, text (click to edit), delete ×. `on` holds toggle, edit and remove. */
-export function todoRow(todo, { t, on, editor }) {
+/** Checkbox, number, text (click to edit), delete ×. `on` holds toggle, edit and remove. */
+export function todoRow(todo, { t, on, editor, number }) {
   const text = editor
     ? Input.new(editor).flex_1().h(28).px(8).rounded(6).border_1().border_color(t.accent).bg(t.background).text_size(13)
     : div().id(`text-${todo.id}`).flex_1().min_w(0).text_size(13).cursor_pointer().on_click(on.edit)
@@ -17,6 +17,7 @@ export function todoRow(todo, { t, on, editor }) {
   return h_flex().id(`row-${todo.id}`).w_full().gap(10).px(10).py(6).items_start().rounded(6)
     .hover((s) => s.bg(t.raised))
     .child(checkbox(todo, { t, onToggle: on.toggle }))
+    .child(div().flex_none().min_w(22).text_size(13).text_color(t.dim).child(number ? `#${number}` : ""))
     .child(text)
     .child(div().id(`del-${todo.id}`).flex_none().px(4).text_size(13).text_color(t.dim).cursor_pointer()
       .hover((s) => s.text_color(t.foreground)).on_click(on.remove).child("×"));
