@@ -135,21 +135,21 @@ export default class Todos extends View {
     else cx.notify();
   }
 
-  row(todo, t) {
+  row(todo, t, number) {
     const on = {
       toggle: (_e, cx) => this.save(toggled(todo, new Date().toISOString()), cx),
       edit: (_e, cx) => this.startEdit(todo, cx),
       remove: (_e, cx) => this.remove(todo, cx),
     };
     const editor = this.editing?.id === todo.id ? this.editing.input : null;
-    return todoRow(todo, { t, on, editor });
+    return todoRow(todo, { t, on, editor, number });
   }
 
   body(t) {
     const note = (text) => div().text_size(12.5).text_color(t.dim).child(text);
     if (this.lists === undefined) return note("Loading…");
     if (!this.current()) return note("Open a project folder to see its todos.");
-    const rows = sorted(this.shownList()?.todos ?? []).map((todo) => this.row(todo, t));
+    const rows = sorted(this.shownList()?.todos ?? []).map((todo, i) => this.row(todo, t, todo.done ? null : i + 1));
     if (!rows.length) return note("Nothing here yet. Type a todo above, then Enter.");
     return v_flex().id("rows").w_full().flex_1().min_h(0).overflow_y_scroll().children(rows);
   }

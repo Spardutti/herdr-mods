@@ -15,13 +15,15 @@ node ~/.claude/skills/todos/todos.mjs <command>
 |---|---|
 | `lists` | Every list with its pending count. |
 | `create "name"` | Makes an empty list. The name becomes lowercase with dashes. |
-| `list <list>` | Pending todos, newest first: the id, then the first line of the text. |
+| `list <list>` | Pending todos, newest first: `#n`, the id, then the first line of the text. |
 | `add <list> "text"` | Adds a todo. Prints its id. |
 | `edit <list> <id> "text"` | Replaces a todo's text. |
 | `done <list> <id>` | Marks a todo done. |
 | `delete <list> <id>` | Removes a todo for good. Only when the user asks to delete. |
 
 An `<id>` can be its first few characters, as long as only one todo starts with them.
+
+The `#n` matches the number in the Todos window. When the user says "#2", run `list` and use that todo's id.
 
 ## Pick the list
 

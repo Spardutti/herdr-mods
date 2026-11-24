@@ -41,11 +41,20 @@ test("add writes one file holding the text", () => {
   expect([files("app"), saved("app", id).text]).toEqual([[`${id}.json`], "buy milk"]);
 });
 
-test("list shows pending todos only, as id and first line", () => {
+test("list shows pending todos only, as number, id and first line", () => {
   run(["create", "app"]);
   const kept = addedId(run(["add", "app", "buy milk\nthe oat one"]));
   run(["done", "app", addedId(run(["add", "app", "call mom"]))]);
-  expect(run(["list", "app"])).toBe(`${kept}  buy milk`);
+  expect(run(["list", "app"])).toBe(`#1  ${kept}  buy milk`);
+});
+
+test("list numbers pending todos newest first, as the window does", () => {
+  run(["create", "app"]);
+  const write = (id, createdAt) => writeFileSync(join(dir, "app", `${id}.json`),
+    JSON.stringify({ id, text: id, done: false, createdAt, doneAt: null }));
+  write("aaaaaaaa", "2026-01-01T00:00:00.000Z");
+  write("bbbbbbbb", "2026-02-01T00:00:00.000Z");
+  expect(run(["list", "app"])).toBe("#1  bbbbbbbb  bbbbbbbb\n#2  aaaaaaaa  aaaaaaaa");
 });
 
 test("done takes a short id and marks the todo done", () => {
