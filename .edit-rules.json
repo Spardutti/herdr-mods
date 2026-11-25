@@ -15,6 +15,16 @@
       "id": "stale-load-wins",
       "files": "^mods/[^/]+/(?![^/]*\\.test\\.)[^/]+\\.m?js$",
       "message": "A polled load in cx.spawn can finish after a newer action and put old data back: drop results older than the last action (the `tracker` in mods/blocked-run/main.js), and never write a whole file back from a snapshot."
+    },
+    {
+      "id": "readme-follows-mod",
+      "files": "^mods/[^/]+/(?:main\\.js|mod\\.json|keys\\.json)$",
+      "message": "A new mod or a change people will notice needs its README table row and section to say what it does now, keys included (missed for system-usage, wrong for agent-board)."
+    },
+    {
+      "id": "popup-list-scrolls",
+      "files": "^mods/[^/]+/(?:(?![^/]*\\.test\\.)[^/]+\\.m?js|mod\\.json)$",
+      "message": "A pop-up's list must scroll, not clip: root size_full(), list .id(...).flex_1().min_h(0).overflow_y_scrollbar(), and no fixed overlay height the content can outgrow (as mods/agent-board/search.js does)."
     }
   ]
 }
