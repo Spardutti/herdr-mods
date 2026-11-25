@@ -8,7 +8,6 @@ export function parseRepos(stdout) {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-/** Projects whose name or path holds every typed word, name matches first. */
 export function matchProjects(list, query) {
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
   const hasAll = (text) => words.every((w) => text.toLowerCase().includes(w));
@@ -17,7 +16,6 @@ export function matchProjects(list, query) {
   return [...byName, ...byPath];
 }
 
-/** The open space working in that project's folder, or null. */
 export function spaceFor(project, spaceList) {
   return spaceList.find((s) => s.machine === "wsl" && s.folder === project.path) ?? null;
 }

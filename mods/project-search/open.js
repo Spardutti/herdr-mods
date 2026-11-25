@@ -14,12 +14,10 @@ function openIn(project, spaceList, extra) {
   showWork();
 }
 
-/** A new terminal in the project: a tab in its space, or a new wsl space in its folder. */
 export function openTerminal(project, spaceList) {
   openIn(project, spaceList, {});
 }
 
-/** Claude Code in the project, the same way. */
 export async function openAgent(project, spaceList) {
   const list = await knownAgents({ on: "wsl" }).catch(() => []);
   const argv = list.find((a) => a.key === "claude" && a.installed)?.run ?? ["claude"];

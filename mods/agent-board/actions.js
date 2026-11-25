@@ -13,23 +13,19 @@ function select(child) {
   setShared(VIEW, child);
 }
 
-/** Shows the card's chat: focuses its pane, then switches the view stack to the work column. */
 export function openChat(card) {
   run("pane.focus", { pane: card.pane });
   select("work");
 }
 
-/** Switches the view stack back to the board. */
 export function showBoard() {
   select("board");
 }
 
-/** Starts Claude Code in a new tab of that space. */
 export async function newAgent(spaceId, machine) {
   run("tab.new", { name: "Claude Code", space: spaceId, argv: await claudeArgv(machine), focus: false });
 }
 
-/** Opens the shipped worktree dialog, which starts Claude Code in the new checkout's space. */
 export async function newWorktreeAgent(spaceId, folder, machine) {
   const argv = await claudeArgv(machine);
   openOverlay({ mod: "worktree", kind: "dialog", width: 460, height: 280, props: { space: spaceId, folder, action: "new", argv } });

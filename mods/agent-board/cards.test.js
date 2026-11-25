@@ -99,3 +99,16 @@ test("matchCards finds a card by its branch, and an empty query keeps every card
 
   assert.deepEqual([matchCards(list, "login").map((c) => c.address), matchCards(list, " ").length], [["a"], 2]);
 });
+
+test("boardCards keeps a leading emoji in the title, as Herdr's own agents list does: \"🚀 Deploy\"", () => {
+  const [card] = boardCards([agent("a", "idle", { title: "🚀 Deploy" })], [], "all");
+
+  assert.equal(card.title, "🚀 Deploy");
+});
+
+test("boardCards names a worktree card by its repo: space \"agents\" in /h/.herdr/worktrees/otacon/agents is \"otacon\"", () => {
+  const list = [agent("a", "idle", { pane: "p1", space_name: "agents" }), agent("b", "idle", { pane: "p2", space_name: "herdr-mods" })];
+  const panes = [{ pane: "p1", cwd: "/h/.herdr/worktrees/otacon/agents/src", branch: "agents" }, { pane: "p2", cwd: "/h/projects/herdr-mods", branch: "main" }];
+
+  assert.deepEqual(boardCards(list, panes, "all").map((c) => c.project), ["otacon", "herdr-mods"]);
+});
