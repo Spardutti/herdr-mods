@@ -10,6 +10,7 @@ Mods for the [Herdr](https://herdr.dev) desktop app, plus two helpers for runnin
 | [`blocked-run`](#blocked-run) | Commands auto mode blocked, or Claude asked you to run, with a **Run it** button. | Linux or WSL spaces |
 | [`demo-board`](#demo-board) | A per-project board of what to show at the next demo: Claude adds steps on each PR, you approve them and take notes. | Linux or WSL spaces |
 | [`todos`](#todos) | A pop-up todo list per project, on `ctrl-shift-y`. Claude reads and writes the same lists. | Linux or WSL spaces |
+| [`system-usage`](#system-usage) | WSL's CPU, RAM and swap as bars, updated every 2 seconds. | a machine named `wsl` |
 | [`resume`](#resume) | Brings each Claude Code chat back after a reboot or crash. | Linux or WSL |
 | [`shutdown`](#shutdown) | Shuts WSL down 2 minutes after you close Herdr. | Windows + WSL |
 
@@ -171,6 +172,15 @@ never overwrite each other's changes.
    mkdir -p ~/.claude/skills/todos
    cp mods/todos/claude/SKILL.md mods/todos/claude/todos.mjs mods/todos/claude/todo.js ~/.claude/skills/todos/
    ```
+
+## system-usage
+
+CPU, RAM and swap of the machine named `wsl`, as bars that turn yellow at 60% and red at 85%.
+It reads `/proc/stat` and `/proc/meminfo` there every 2 seconds.
+
+Install it like the others and add a block for it, for example under `apps` in the column above:
+`{ "id": "usage", "type": "block", "size": { "px": 190 }, "content": { "mod": "system-usage" } }`.
+Or open it as a pop-up: **System usage** in the command palette.
 
 ## resume
 
