@@ -55,10 +55,11 @@ export default class ProjectSearch extends View {
 
   render() {
     const t = theme(), list = this.matches();
-    return v_flex().id("project-search").track_focus(this.handle).w_full().min_h(0).p(14).gap(10).bg(t.popover).text_size(13)
+    this.at = Math.min(this.at, Math.max(list.length - 1, 0));
+    return v_flex().id("project-search").track_focus(this.handle).size_full().min_h(0).p(14).gap(10).bg(t.popover).text_size(13)
       .on_key_down((e, cx) => {
         if (e.key === "escape") return closeOverlay(props().overlay);
-        if (e.key === "down") this.at = Math.min(this.at + 1, list.length - 1);
+        if (e.key === "down") this.at = Math.max(0, Math.min(this.at + 1, list.length - 1));
         else if (e.key === "up") this.at = Math.max(this.at - 1, 0);
         else return;
         cx.stop_propagation();
@@ -67,6 +68,6 @@ export default class ProjectSearch extends View {
       .child(h_flex().h(36).flex_none().px(10).gap(8).items_center().rounded(8).border_1().border_color(t.accent).bg(t.background)
         .child(svg("mods/workspace-chrome/search.svg").size(15).text_color(t.dim))
         .child(Input.new(this.input).flex_1().h_full().text_color(t.foreground)))
-      .child(v_flex().min_h(0).gap(2).children([this.status(t, list)].filter(Boolean)).children(list.map((p, i) => this.row(p, i, t))));
+      .child(v_flex().id("repo-list").flex_1().min_h(0).gap(2).overflow_y_scrollbar().children([this.status(t, list)].filter(Boolean)).children(list.map((p, i) => this.row(p, i, t))));
   }
 }
