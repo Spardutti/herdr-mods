@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { matchProjects, parseRepos, spaceFor } from "./projects.js";
+import { hasViewStack, matchProjects, parseRepos, spaceFor } from "./projects.js";
 
 const p = (name, path = `/h/projects/${name}`) => ({ name, path });
 
@@ -34,4 +34,11 @@ test("spaceFor finds the wsl space with folder /h/projects/a/app, and null when 
   const spaces = [{ id: "s0", machine: null, folder: "/h/projects/a/app" }, { id: "wsl/s2", machine: "wsl", folder: "/h/projects/other" }, { id: "wsl/s1", machine: "wsl", folder: "/h/projects/a/app" }];
 
   assert.deepEqual([spaceFor(p("app", "/h/projects/a/app"), spaces)?.id, spaceFor(p("b"), spaces)], ["wsl/s1", null]);
+});
+
+test("hasViewStack finds the board's \"view\" stack in any layout tree, a copy included, and not in one without it", () => {
+  const board = { id: "root", children: [{ id: "bar" }, { id: "view", type: "stack", children: [] }] };
+  const other = { id: "root", children: [{ id: "sidebar", children: [{ id: "spaces" }] }] };
+
+  assert.deepEqual([hasViewStack(board), hasViewStack(other), hasViewStack(null)], [true, false, false]);
 });

@@ -1,4 +1,6 @@
 export const ORDER = ["blocked", "done", "working", "idle"];
+export const LABELS = { blocked: "Needs you", done: "Done", working: "Working", idle: "Idle" };
+export const EMPTY = "No agents running. Press Ctrl+K, pick a project and press Ctrl+Enter to start Claude there.";
 
 // Herdr's agents list rule (mods/agents/main.js `clean`): drops status glyphs, keeps a leading emoji.
 const LEADING_GLYPHS = /^(?:\[ [!.] \] |[✋⏳]\uFE0F?(?=\s)|(?!(?:\p{Emoji}\uFE0F|[#*]\u20E3))[^\p{L}\p{N}\p{Ps}\p{Pi}\p{Emoji_Presentation}])+/u;
@@ -69,4 +71,11 @@ const STEPS = { left: () => -1, right: () => 1, up: (cols) => -cols, down: (cols
 export function moveSelection(at, key, { count, cols }) {
   const next = at + (STEPS[key]?.(cols) ?? 0);
   return next >= 0 && next < count ? next : at;
+}
+
+const EMPTY_FILTER = { blocked: "Nobody needs you right now.", done: "No agents are done.", working: "No agents are working.", idle: "No agents are idle." };
+
+export function emptyMessage(total, filter) {
+  if (!total || filter === "all") return EMPTY;
+  return `${EMPTY_FILTER[filter]} Pick All in the bar to see the other ${total}.`;
 }

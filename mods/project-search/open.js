@@ -1,8 +1,9 @@
-import { knownAgents, run, setShared } from "herdr";
-import { spaceFor } from "./projects.js";
+import { knownAgents, layout, run, setShared } from "herdr";
+import { hasViewStack, spaceFor } from "./projects.js";
 
 // The agent-board layout's stack and the shared key its bar reads.
 function showWork() {
+  if (!hasViewStack(layout())) return;
   run("layout.select", { stack: "view", child: "work" });
   setShared("agent-board.view", "work");
 }

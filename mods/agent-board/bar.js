@@ -1,6 +1,6 @@
 import { div, svg } from "gpui-kit";
 import { h_flex } from "gpui-base";
-import { agents, openOverlay, panes, run, setShared, shared, theme, window } from "herdr";
+import { agents, focused, openOverlay, panes, run, setShared, shared, theme, window } from "herdr";
 import { ORDER, boardCards, filterCounts } from "./cards.js";
 import { FILTER, LABELS as STATUS_LABELS } from "./board.js";
 import { VIEW, openChat, showBoard } from "./actions.js";
@@ -41,8 +41,8 @@ function filters(t) {
 }
 
 function agentStrip(t) {
-  const cards = boardCards(agents(), panes(), "all");
-  return h_flex().flex_1().min_w(0).gap(6).overflow_hidden().children(cards.map((c) => pill(`strip-${c.address}`, c.pane === panes().find((p) => p.focused)?.pane, () => openChat(c))
+  const cards = boardCards(agents(), panes(), "all"), here = focused()?.pane;
+  return h_flex().flex_1().min_w(0).gap(6).overflow_hidden().children(cards.map((c) => pill(`strip-${c.address}`, c.pane === here, () => openChat(c))
     .child(div().size(10).rounded_full().bg(t[c.status] ?? t.idle)).child(div().max_w(200).truncate().child(c.project))));
 }
 
