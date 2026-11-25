@@ -20,6 +20,7 @@ export function openChat(card) {
 
 export function showBoard() {
   select("board");
+  run("agent-board.grab");
 }
 
 export async function newAgent(spaceId, machine) {

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { boardCards, filterCounts, isWorktree, matchCards, needsYou, nextCard, prevCard } from "./cards.js";
+import { boardCards, filterCounts, isWorktree, matchCards, moveSelection, needsYou, nextCard, prevCard } from "./cards.js";
 
 const agent = (address, status, extra = {}) => ({
   address, status, pane: `p-${address}`, space: "wsl/s1", space_name: "app", title: "", tab_name: "2", seq: 0, ...extra,
@@ -111,4 +111,16 @@ test("boardCards names a worktree card by its repo: space \"agents\" in /h/.herd
   const panes = [{ pane: "p1", cwd: "/h/.herdr/worktrees/otacon/agents/src", branch: "agents" }, { pane: "p2", cwd: "/h/projects/herdr-mods", branch: "main" }];
 
   assert.deepEqual(boardCards(list, panes, "all").map((c) => c.project), ["otacon", "herdr-mods"]);
+});
+
+test("moveSelection on 7 cards in rows of 3: right 1→2, left 1→0, down 1→4, up 4→1", () => {
+  const grid = { count: 7, cols: 3 };
+
+  assert.deepEqual([moveSelection(1, "right", grid), moveSelection(1, "left", grid), moveSelection(1, "down", grid), moveSelection(4, "up", grid)], [2, 0, 4, 1]);
+});
+
+test("moveSelection stays put off the grid: left of 0, up from 1, down from 5 of 7, right of 6", () => {
+  const grid = { count: 7, cols: 3 };
+
+  assert.deepEqual([moveSelection(0, "left", grid), moveSelection(1, "up", grid), moveSelection(5, "down", grid), moveSelection(6, "right", grid), moveSelection(3, "enter", grid)], [0, 1, 5, 6, 3]);
 });

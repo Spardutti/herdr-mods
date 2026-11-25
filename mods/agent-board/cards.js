@@ -62,3 +62,11 @@ export function filterCounts(agentList) {
 export function isWorktree(cwd) {
   return /\/worktrees\//.test(cwd ?? "");
 }
+
+const STEPS = { left: () => -1, right: () => 1, up: (cols) => -cols, down: (cols) => cols };
+
+// Arrow moves on a grid filled row by row; a move off the grid stays put.
+export function moveSelection(at, key, { count, cols }) {
+  const next = at + (STEPS[key]?.(cols) ?? 0);
+  return next >= 0 && next < count ? next : at;
+}
