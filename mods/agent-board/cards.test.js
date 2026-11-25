@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { boardCards, emptyMessage, filterCounts, isWorktree, matchCards, moveSelection, needsYou, nextCard, prevCard, shownView } from "./cards.js";
+import { boardCards, emptyMessage, filterCounts, isWorktree, matchCards, moveSelection, needsYou, nextCard, prevCard } from "./cards.js";
 
 const agent = (address, status, extra = {}) => ({
   address, status, pane: `p-${address}`, space: "wsl/s1", space_name: "app", title: "", tab_name: "2", seq: 0, ...extra,
@@ -125,13 +125,15 @@ test("moveSelection stays put off the grid: left of 0, up from 1, down from 5 of
   assert.deepEqual([moveSelection(0, "left", grid), moveSelection(1, "up", grid), moveSelection(5, "down", grid), moveSelection(6, "right", grid), moveSelection(3, "enter", grid)], [0, 1, 5, 6, 3]);
 });
 
-test("shownView reads the \"view\" stack's active child from the layout tree, and \"board\" when there is none", () => {
-  const tree = { id: "root", children: [{ id: "bar" }, { id: "view", type: "stack", active: "work", children: [] }] };
-
-  assert.deepEqual([shownView(tree), shownView({ id: "root", children: [] }), shownView(null)], ["work", "board", "board"]);
-});
-
 test("emptyMessage says no agents run when none do, and names the filter when it hides them all", () => {
   assert.deepEqual([emptyMessage(0, "all").startsWith("No agents running"), emptyMessage(3, "done")],
-    [true, "No agents are Done. Pick All in the bar to see the other 3."]);
+    [true, "No agents are done. Pick All in the bar to see the other 3."]);
+});
+
+test("emptyMessage reads as a sentence for every filter: Needs you gives \"Nobody needs you right now.\"", () => {
+  assert.deepEqual(["blocked", "working", "idle"].map((f) => emptyMessage(2, f)), [
+    "Nobody needs you right now. Pick All in the bar to see the other 2.",
+    "No agents are working. Pick All in the bar to see the other 2.",
+    "No agents are idle. Pick All in the bar to see the other 2.",
+  ]);
 });

@@ -16,6 +16,20 @@ export function matchProjects(list, query) {
   return [...byName, ...byPath];
 }
 
+function findNode(node, id) {
+  if (!node || node.id === id) return node ?? null;
+  for (const child of node.children ?? []) {
+    const found = findNode(child, id);
+    if (found) return found;
+  }
+  return null;
+}
+
+// The agent-board layout, or any copy of it, is the one with a "view" stack.
+export function hasViewStack(tree) {
+  return findNode(tree, "view") !== null;
+}
+
 export function spaceFor(project, spaceList) {
   return spaceList.find((s) => s.machine === "wsl" && s.folder === project.path) ?? null;
 }

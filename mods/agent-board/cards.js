@@ -73,21 +73,9 @@ export function moveSelection(at, key, { count, cols }) {
   return next >= 0 && next < count ? next : at;
 }
 
-function findNode(node, id) {
-  if (!node || node.id === id) return node ?? null;
-  for (const child of node.children ?? []) {
-    const found = findNode(child, id);
-    if (found) return found;
-  }
-  return null;
-}
-
-// The stack's real child, so a stored value can't disagree with what is on screen.
-export function shownView(tree) {
-  return findNode(tree, "view")?.active ?? "board";
-}
+const EMPTY_FILTER = { blocked: "Nobody needs you right now.", done: "No agents are done.", working: "No agents are working.", idle: "No agents are idle." };
 
 export function emptyMessage(total, filter) {
   if (!total || filter === "all") return EMPTY;
-  return `No agents are ${LABELS[filter]}. Pick All in the bar to see the other ${total}.`;
+  return `${EMPTY_FILTER[filter]} Pick All in the bar to see the other ${total}.`;
 }

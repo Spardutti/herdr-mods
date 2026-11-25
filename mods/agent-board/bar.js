@@ -1,9 +1,9 @@
 import { div, svg } from "gpui-kit";
 import { h_flex } from "gpui-base";
-import { agents, focused, layout, openOverlay, panes, run, setShared, shared, theme, window } from "herdr";
-import { ORDER, boardCards, filterCounts, shownView } from "./cards.js";
+import { agents, focused, openOverlay, panes, run, setShared, shared, theme, window } from "herdr";
+import { ORDER, boardCards, filterCounts } from "./cards.js";
 import { FILTER, LABELS as STATUS_LABELS } from "./board.js";
-import { openChat, showBoard } from "./actions.js";
+import { VIEW, openChat, showBoard } from "./actions.js";
 
 const LABELS = { all: "All", ...STATUS_LABELS };
 const stop = (_e, cx) => cx.stop_propagation();
@@ -49,7 +49,7 @@ function agentStrip(t) {
 /** Header: on the board, project search and status filters; on a chat, ← Board and a strip of other agents. */
 export function renderBar(view) {
   const t = theme();
-  const onBoard = shownView(layout()) === "board";
+  const onBoard = (shared(VIEW) ?? "board") === "board";
   const row = h_flex().size_full().px(16).gap(14).items_center().bg(t.chrome).border_b_1().border_color(t.border)
     .when(window()?.platform === "macos" && !window()?.fullscreen, (el) => el.pl(80));
   if (!onBoard) {
