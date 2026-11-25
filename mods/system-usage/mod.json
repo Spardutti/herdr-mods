@@ -1,0 +1,6 @@
+{
+  "place": "none",
+  "title": "System usage",
+  "overlay": { "kind": "popup", "at": "top", "offset": 40, "width": 360, "height": 220 },
+  "palette": [{ "title": "System usage", "command": "mod.open", "args": { "name": "system-usage" }, "words": "cpu ram memory wsl" }]
+}
