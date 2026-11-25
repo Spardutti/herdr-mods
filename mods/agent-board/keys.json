@@ -1,0 +1,10 @@
+{
+  "layout:agent-board": {
+    "ctrl-k": "mod.open:project-search",
+    "f8": "agent-board.needs",
+    "f9": "agent-board.prev",
+    "f10": "agent-board.next",
+    "ctrl-p": "agent-board.find",
+    "f1": "agent-board.board"
+  }
+}
