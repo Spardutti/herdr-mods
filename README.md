@@ -11,6 +11,8 @@ Mods for the [Herdr](https://herdr.dev) desktop app, plus two helpers for runnin
 | [`demo-board`](#demo-board) | A per-project board of what to show at the next demo: Claude adds steps on each PR, you approve them and take notes. | Linux or WSL spaces |
 | [`todos`](#todos) | A pop-up todo list per project, on `ctrl-shift-y`. Claude reads and writes the same lists. | Linux or WSL spaces |
 | [`system-usage`](#system-usage) | WSL's CPU, RAM and swap as bars, updated every 2 seconds. | a machine named `wsl` |
+| [`agent-board`](#agent-board) | A layout of agent cards instead of the sidebar. Click one to open its chat. | any |
+| [`project-search`](#project-search) | Find a repo under `~/projects` and open a terminal or Claude there. | a machine named `wsl` |
 | [`resume`](#resume) | Brings each Claude Code chat back after a reboot or crash. | Linux or WSL |
 | [`shutdown`](#shutdown) | Shuts WSL down 2 minutes after you close Herdr. | Windows + WSL |
 
@@ -181,6 +183,21 @@ It reads `/proc/stat` and `/proc/meminfo` there every 2 seconds.
 Install it like the others and add a block for it, for example under `apps` in the column above:
 `{ "id": "usage", "type": "block", "size": { "px": 190 }, "content": { "mod": "system-usage" } }`.
 Or open it as a pop-up: **System usage** in the command palette.
+
+## agent-board
+
+A layout with no left sidebar. Each running agent is a card, grouped as **Needs you**, **Done**, **Working** and **Idle**.
+Click a card to open its chat, with your tabs and right column. **← Board** takes you back.
+Each card has **+ Agent** (Claude Code in a new tab of that space) and **+ Agent in worktree** (Herdr's New worktree dialog, then Claude there).
+The bar on top filters the cards by status and holds the project search.
+
+Install `mods/agent-board` and `mods/project-search`, then copy `layouts/agent-board.json` into `~/.config/herdr-app/layouts/`.
+Switch to it with `ctrl-shift-l`. Merge `mods/agent-board/keys.json` into yours for its keys there: `f1` goes back to the board, `ctrl-k` opens the project search, `ctrl-p` finds an open agent (type, ↑/↓, Enter), `f9` / `f10` open the previous / next card's chat, `f8` the first one that needs you. Its right column is the one from this repo's mods; change it in the layout to fit yours.
+
+## project-search
+
+A pop-up listing every git repo under `~/projects` on the `wsl` machine (up to 4 folders deep). Type to filter.
+**Enter** opens a terminal there, **Ctrl+Enter** starts Claude Code there: in the project's open space, or in a new one.
 
 ## resume
 
