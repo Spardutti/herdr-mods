@@ -1,11 +1,10 @@
 import { View, div, svg } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
 import { checking, closeOverlay, exec, props, spaces, theme } from "herdr";
-import { listHeight, matchProjects, parseRepos } from "./projects.js";
+import { MAX_ROWS, listHeight, matchProjects, parseRepos } from "./projects.js";
 import { openAgent, openTerminal } from "./open.js";
 
 const FIND = ["-c", "find ~/projects -maxdepth 4 -name .git -type d -prune 2>/dev/null"];
-const MAX_ROWS = 12;
 
 /** Type to find a repo; Enter opens a terminal there, Ctrl+Enter starts Claude there. */
 export default class ProjectSearch extends View {

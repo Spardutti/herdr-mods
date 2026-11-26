@@ -34,11 +34,12 @@ export function spaceFor(project, spaceList) {
   return spaceList.find((s) => s.machine === "wsl" && s.folder === project.path) ?? null;
 }
 
-const ROW = 44 + 2;
+export const MAX_ROWS = 8;
+const ROW = 44;
+const GAP = 2;
 const STATUS_LINE = 36;
-const MAX_SHOWN = 8;
 
-// The pop-up sizes to its content, so the list needs a real height to show and to scroll.
 export function listHeight(rows) {
-  return rows ? Math.min(rows, MAX_SHOWN) * ROW : STATUS_LINE;
+  const shown = Math.min(rows, MAX_ROWS);
+  return shown ? shown * ROW + (shown - 1) * GAP : STATUS_LINE;
 }

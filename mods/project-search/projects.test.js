@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { hasViewStack, listHeight, matchProjects, parseRepos, spaceFor } from "./projects.js";
+import { MAX_ROWS, hasViewStack, listHeight, matchProjects, parseRepos, spaceFor } from "./projects.js";
 
 const p = (name, path = `/h/projects/${name}`) => ({ name, path });
 
@@ -43,6 +43,10 @@ test("hasViewStack finds the board's \"view\" stack in any layout tree, a copy i
   assert.deepEqual([hasViewStack(board), hasViewStack(other), hasViewStack(null)], [true, false, false]);
 });
 
-test("listHeight fits its rows (3 rows: 138px), shows the status line when empty (36px), and caps at 8 rows (368px)", () => {
-  assert.deepEqual([listHeight(3), listHeight(0), listHeight(12)], [138, 36, 368]);
+test("listHeight fits its rows with a gap only between them (3 rows: 136px), and shows the status line when empty (36px)", () => {
+  assert.deepEqual([listHeight(3), listHeight(0)], [136, 36]);
+});
+
+test("listHeight has room for every row the search returns: MAX_ROWS rows need MAX_ROWS * 44 + gaps", () => {
+  assert.equal(listHeight(MAX_ROWS), MAX_ROWS * 44 + (MAX_ROWS - 1) * 2);
 });
