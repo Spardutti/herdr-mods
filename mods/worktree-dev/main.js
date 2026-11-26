@@ -216,8 +216,9 @@ export default class Worktree extends View {
   }
 
   async base() {
-    await git(this.repo.top, ["fetch", "origin"], this.on, 120_000);
-    for (const ref of ["origin/dev", "origin/develop", "origin/main", "origin/master", "dev", "develop", "main", "master"]) {
+    // A slow or failed fetch must not block the worktree; the last-known refs still work.
+    await git(this.repo.top, ["fetch", "origin"], this.on, 30_000).catch(() => null);
+    for (const name of ["dev", "develop", "main", "master"]) for (const ref of [`origin/${name}`, `refs/heads/${name}`]) {
       if ((await git(this.repo.top, ["rev-parse", "--verify", "--quiet", `${ref}^{commit}`], this.on)).ok) return ref;
     }
     return "HEAD";
@@ -367,7 +368,7 @@ export default class Worktree extends View {
             ? !r.linked
               ? "This is the repository's main checkout, not a worktree."
               : `Closes the space and deletes ${tilde(r.top, this.userHome)}. The branch stays.`
-            : `A new space on a checkout in ${tilde(this.root, this.userHome)}/${r.name}/. A branch that exists is checked out; a new one starts from origin dev, else develop, else main.`;
+            : `A new space on a checkout in ${tilde(this.root, this.userHome)}/${r.name}/. A branch that exists is checked out; a new one starts from dev, develop, main or master (fresh from origin when it can), else here.`;
     const blocked = !r || (remove && !r.linked);
     return v_flex()
       .id("worktree")
