@@ -33,3 +33,13 @@ export function hasViewStack(tree) {
 export function spaceFor(project, spaceList) {
   return spaceList.find((s) => s.machine === "wsl" && s.folder === project.path) ?? null;
 }
+
+export const MAX_ROWS = 8;
+const ROW = 44;
+const GAP = 2;
+const STATUS_LINE = 36;
+
+export function listHeight(rows) {
+  const shown = Math.min(rows, MAX_ROWS);
+  return shown ? shown * ROW + (shown - 1) * GAP : STATUS_LINE;
+}
