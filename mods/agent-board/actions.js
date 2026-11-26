@@ -29,5 +29,5 @@ export async function newAgent(spaceId, machine) {
 
 export async function newWorktreeAgent(spaceId, folder, machine) {
   const argv = await claudeArgv(machine);
-  openOverlay({ mod: "worktree", kind: "dialog", width: 460, height: 280, props: { space: spaceId, folder, action: "new", argv } });
+  openOverlay({ mod: "worktree-dev", kind: "dialog", width: 460, height: 280, props: { space: spaceId, folder, action: "new", argv } });
 }

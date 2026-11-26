@@ -188,7 +188,7 @@ Or open it as a pop-up: **System usage** in the command palette.
 
 A layout with no left sidebar. Each running agent is a card that keeps its place; its color shows **Needs you**, **Done**, **Working** or **Idle**.
 Click a card, or move to it with the arrow keys and press Enter, to open its chat with your tabs and right column. **← Board** takes you back.
-Each card has **+ Agent** (Claude Code in a new tab of that space) and **+ Agent in worktree** (Herdr's New worktree dialog, then Claude there).
+Each card has **+ Agent** (Claude Code in a new tab of that space) and **+ Agent in worktree** (a copy of Herdr's New worktree dialog, `mods/worktree-dev`, then Claude there; a new branch starts from `origin/dev`, else `develop`, else `main`).
 The bar on top filters the cards by status and holds the project search.
 
 Install `mods/agent-board` and `mods/project-search`, then copy `layouts/agent-board.json` into `~/.config/herdr-app/layouts/`.
