@@ -40,10 +40,15 @@ function filters(t) {
     .child(LABELS[k]).child(div().text_color(t.dim).child(String(counts[k])))));
 }
 
+function closeAgent(c, t) {
+  return div().id(`close-${c.address}`).text_color(t.dim).hover((s) => s.text_color(t.foreground)).on_mouse_down("left", stop)
+    .on_click((_e, cx) => { cx.stop_propagation(); run("pane.close", { pane: c.pane }); }).child(svg("mods/pane/close.svg").size(12));
+}
+
 function agentStrip(t) {
   const cards = boardCards(agents(), panes(), "all"), here = focused()?.pane;
   return h_flex().flex_1().min_w(0).gap(6).overflow_hidden().children(cards.map((c) => pill(`strip-${c.address}`, c.pane === here, () => openChat(c))
-    .child(div().size(10).rounded_full().bg(t[c.status] ?? t.idle)).child(div().max_w(200).truncate().child(c.project))));
+    .child(div().size(10).rounded_full().bg(t[c.status] ?? t.idle)).child(div().max_w(200).truncate().child(c.project)).child(closeAgent(c, t))));
 }
 
 /** Header: on the board, project search and status filters; on a chat, ← Board and a strip of other agents. */
