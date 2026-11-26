@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { hasViewStack, matchProjects, parseRepos, spaceFor } from "./projects.js";
+import { hasViewStack, listHeight, matchProjects, parseRepos, spaceFor } from "./projects.js";
 
 const p = (name, path = `/h/projects/${name}`) => ({ name, path });
 
@@ -41,4 +41,8 @@ test("hasViewStack finds the board's \"view\" stack in any layout tree, a copy i
   const other = { id: "root", children: [{ id: "sidebar", children: [{ id: "spaces" }] }] };
 
   assert.deepEqual([hasViewStack(board), hasViewStack(other), hasViewStack(null)], [true, false, false]);
+});
+
+test("listHeight fits its rows (3 rows: 138px), shows the status line when empty (36px), and caps at 8 rows (368px)", () => {
+  assert.deepEqual([listHeight(3), listHeight(0), listHeight(12)], [138, 36, 368]);
 });
