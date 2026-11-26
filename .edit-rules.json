@@ -25,6 +25,16 @@
       "id": "popup-list-scrolls",
       "files": "^mods/[^/]+/(?:(?![^/]*\\.test\\.)[^/]+\\.m?js|mod\\.json)$",
       "message": "A pop-up's list must scroll, not clip: root size_full(), list .id(...).flex_1().min_h(0).overflow_y_scrollbar(), and no fixed overlay height the content can outgrow (as mods/agent-board/search.js does)."
+    },
+    {
+      "id": "herdr-behavior-checked",
+      "files": "^(?:mods/.+\\.m?js|(?:blocked|resume|shutdown)/.+\\.(?:py|sh)|mods/[^/]+/(?:mod|keys)\\.json|layouts/[^/]+\\.json)$",
+      "message": "Before relying on how Herdr behaves (what layout() returns, how a popup sizes, which mod copy gets a command), find it in AGENTS.md, herdr.d.ts or a shipped mod doing the same; if none says so, tell the user it is a guess (a layout() guess and a popup-size guess each broke a release)."
+    },
+    {
+      "id": "comments-stay-true",
+      "files": "^(?:mods/.+\\.m?js|(?:blocked|resume|shutdown)/.+\\.(?:py|sh))$",
+      "message": "When you change code, reread the comments near it and fix or drop any that no longer hold, and keep comments under 5% of the file's lines (a stale open.js comment and an over-budget projects.js both reached review)."
     }
   ]
 }
