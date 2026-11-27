@@ -35,6 +35,11 @@
       "id": "comments-stay-true",
       "files": "^(?:mods/.+\\.m?js|(?:blocked|resume|shutdown)/.+\\.(?:py|sh))$",
       "message": "When you change code, reread the comments near it and fix or drop any that no longer hold, and keep comments under 5% of the file's lines (a stale open.js comment and an over-budget projects.js both reached review)."
+    },
+    {
+      "id": "check-target-where-you-act",
+      "files": "^mods/[^/]+/(?![^/]*\\.test\\.)[^/]+\\.m?js$",
+      "message": "Before git init, worktree add or another create, check the real target in the same step (the path is empty, the branch on local and origin), not a list gathered earlier for something else (project-search trusted find's repo list and ran git init over full folders; worktree-dev checks only local branches)."
     }
   ]
 }
