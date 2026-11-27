@@ -1,6 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { MAX_ROWS, hasViewStack, listHeight, matchProjects, parseRepos, spaceFor, withCreateRow } from "./projects.js";
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { INIT_SCRIPT, MAX_ROWS, hasViewStack, listHeight, matchProjects, parseRepos, spaceFor, withCreateRow } from "./projects.js";
 
 const p = (name, path = `/h/projects/${name}`) => ({ name, path });
 
@@ -71,4 +75,44 @@ for (const query of ["", "my app", "../etc", ".hidden", "a/b", "x;rm"]) {
 
 test("withCreateRow accepts letters, digits, dot, dash and underscore: \"my_app-2.0\"", () => {
   assert.deepEqual(withCreateRow([], [], "my_app-2.0"), [{ name: "my_app-2.0", create: true }]);
+});
+
+test("withCreateRow offers \"api\" when the only repo named api is deeper, at /h/projects/work/api", () => {
+  const repos = [p("api", "/h/projects/work/api")];
+
+  assert.deepEqual(withCreateRow(repos, repos, "api").at(-1), { name: "api", create: true });
+});
+
+test("withCreateRow keeps the create row inside MAX_ROWS when the matches already fill it", () => {
+  const matches = Array.from({ length: MAX_ROWS }, (_, i) => p(`api-${i}`));
+
+  const rows = withCreateRow(matches, matches, "api");
+
+  assert.deepEqual([rows.length, rows.at(-1)], [MAX_ROWS, { name: "api", create: true }]);
+});
+
+const initIn = (home, name) => spawnSync("sh", ["-c", INIT_SCRIPT, "sh", name], { env: { ...process.env, HOME: home }, encoding: "utf8" });
+
+test("INIT_SCRIPT makes ~/projects/new-app a repo on branch main and prints its path", () => {
+  const home = mkdtempSync(join(tmpdir(), "ps-"));
+
+  const r = initIn(home, "new-app");
+
+  assert.deepEqual([r.status, r.stdout.trim(), readFileSync(join(home, "projects/new-app/.git/HEAD"), "utf8")], [0, join(home, "projects/new-app"), "ref: refs/heads/main\n"]);
+});
+
+test("INIT_SCRIPT turns an empty folder the user made into a repo", () => {
+  const home = mkdtempSync(join(tmpdir(), "ps-"));
+  mkdirSync(join(home, "projects/empty"), { recursive: true });
+
+  assert.equal(initIn(home, "empty").status, 0);
+});
+
+test("INIT_SCRIPT refuses a folder that already holds files, and leaves it without a .git", () => {
+  const home = mkdtempSync(join(tmpdir(), "ps-"));
+  mkdirSync(join(home, "projects/personal/inner"), { recursive: true });
+
+  const r = initIn(home, "personal");
+
+  assert.deepEqual([r.status, existsSync(join(home, "projects/personal/.git"))], [1, false]);
 });
