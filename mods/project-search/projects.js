@@ -43,3 +43,12 @@ export function listHeight(rows) {
   const shown = Math.min(rows, MAX_ROWS);
   return shown ? shown * ROW + (shown - 1) * GAP : STATUS_LINE;
 }
+
+// A plain folder name only: no spaces, slashes or leading dot.
+const NEW_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+
+export function withCreateRow(matches, repos, query) {
+  const name = query.trim();
+  if (!NEW_NAME.test(name) || repos.some((p) => p.name === name)) return matches;
+  return [...matches, { name, create: true }];
+}

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { MAX_ROWS, hasViewStack, listHeight, matchProjects, parseRepos, spaceFor } from "./projects.js";
+import { MAX_ROWS, hasViewStack, listHeight, matchProjects, parseRepos, spaceFor, withCreateRow } from "./projects.js";
 
 const p = (name, path = `/h/projects/${name}`) => ({ name, path });
 
@@ -49,4 +49,26 @@ test("listHeight fits its rows with a gap only between them (3 rows: 136px), and
 
 test("listHeight has room for every row the search returns: MAX_ROWS rows need MAX_ROWS * 44 + gaps", () => {
   assert.equal(listHeight(MAX_ROWS), MAX_ROWS * 44 + (MAX_ROWS - 1) * 2);
+});
+
+test("withCreateRow adds a create row for \"ajyatch\" when no repo has that name", () => {
+  const matches = [p("ajyatch-old")];
+
+  assert.deepEqual(withCreateRow(matches, matches, " ajyatch "), [p("ajyatch-old"), { name: "ajyatch", create: true }]);
+});
+
+test("withCreateRow adds no create row when a repo already has that exact name", () => {
+  const repos = [p("ajyatch")];
+
+  assert.deepEqual(withCreateRow(repos, repos, "ajyatch"), [p("ajyatch")]);
+});
+
+for (const query of ["", "my app", "../etc", ".hidden", "a/b", "x;rm"]) {
+  test(`withCreateRow refuses ${JSON.stringify(query)} as a new project name`, () => {
+    assert.deepEqual(withCreateRow([], [], query), []);
+  });
+}
+
+test("withCreateRow accepts letters, digits, dot, dash and underscore: \"my_app-2.0\"", () => {
+  assert.deepEqual(withCreateRow([], [], "my_app-2.0"), [{ name: "my_app-2.0", create: true }]);
 });
