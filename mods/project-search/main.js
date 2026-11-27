@@ -1,8 +1,8 @@
 import { View, div, svg } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
 import { checking, closeOverlay, exec, props, spaces, theme } from "herdr";
-import { MAX_ROWS, listHeight, matchProjects, parseRepos } from "./projects.js";
-import { openAgent, openTerminal } from "./open.js";
+import { MAX_ROWS, listHeight, matchProjects, parseRepos, withCreateRow } from "./projects.js";
+import { createProject, openAgent, openTerminal } from "./open.js";
 
 const FIND = ["-c", "find ~/projects -maxdepth 4 -name .git -type d -prune 2>/dev/null"];
 
@@ -26,22 +26,34 @@ export default class ProjectSearch extends View {
   }
 
   matches() {
-    return matchProjects(this.repos ?? [], this.input.value()).slice(0, MAX_ROWS);
+    const query = this.input.value();
+    const found = matchProjects(this.repos ?? [], query).slice(0, MAX_ROWS);
+    return this.repos && !this.failed ? withCreateRow(found, this.repos, query) : found;
   }
 
   go(project, agent) {
     if (!project) return;
     closeOverlay(props().overlay);
-    if (agent) openAgent(project, spaces());
+    if (project.create) createProject(project.name, agent);
+    else if (agent) openAgent(project, spaces());
     else openTerminal(project, spaces());
   }
 
   row(p, i, t) {
     const on = i === this.at;
+    if (p.create) return this.createRow(p, on, t);
     return h_flex().id(`repo-${p.path}`).h(44).px(10).gap(10).items_center().rounded(6).cursor_pointer()
       .when(on, (el) => el.bg(t.selected)).hover((s) => s.bg(t.hover)).on_click(() => this.go(p, false))
       .child(div().flex_1().min_w(0).child(div().text_color(t.foreground).truncate().child(p.name))
         .child(div().text_size(11).text_color(t.dim).truncate().child(p.path)))
+      .when(on, (el) => el.child(div().text_size(11).text_color(t.dim).child("Enter terminal · Ctrl+Enter Claude")));
+  }
+
+  createRow(p, on, t) {
+    return h_flex().id("create-project").h(44).px(10).gap(10).items_center().rounded(6).cursor_pointer()
+      .when(on, (el) => el.bg(t.selected)).hover((s) => s.bg(t.hover)).on_click(() => this.go(p, false))
+      .child(div().flex_1().min_w(0).child(div().text_color(t.accent).truncate().child(`Create ${p.name}`))
+        .child(div().text_size(11).text_color(t.dim).truncate().child(`~/projects/${p.name} · git init, branch main`)))
       .when(on, (el) => el.child(div().text_size(11).text_color(t.dim).child("Enter terminal · Ctrl+Enter Claude")));
   }
 

@@ -12,7 +12,7 @@ Mods for the [Herdr](https://herdr.dev) desktop app, plus two helpers for runnin
 | [`todos`](#todos) | A pop-up todo list per project, on `ctrl-shift-y`. Claude reads and writes the same lists. | Linux or WSL spaces |
 | [`system-usage`](#system-usage) | WSL's CPU, RAM and swap as bars, updated every 2 seconds. | a machine named `wsl` |
 | [`agent-board`](#agent-board) | A layout of agent cards instead of the sidebar. Click one to open its chat. | any |
-| [`project-search`](#project-search) | Find a repo under `~/projects` and open a terminal or Claude there. | a machine named `wsl` |
+| [`project-search`](#project-search) | Find a repo under `~/projects` and open a terminal or Claude there, or create a new one. | a machine named `wsl` |
 | [`resume`](#resume) | Brings each Claude Code chat back after a reboot or crash. | Linux or WSL |
 | [`shutdown`](#shutdown) | Shuts WSL down 2 minutes after you close Herdr. | Windows + WSL |
 
@@ -198,6 +198,7 @@ Switch to it with `ctrl-shift-l`. Merge `mods/agent-board/keys.json` into yours 
 
 A pop-up listing every git repo under `~/projects` on the `wsl` machine (up to 4 folders deep). Type to filter.
 **Enter** opens a terminal there, **Ctrl+Enter** starts Claude Code there: in the project's open space, or in a new one.
+Type a name no repo has, like `my-app`, and the last row is **Create my-app**: it runs `git init -b main ~/projects/my-app` and opens it the same way.
 
 ## resume
 

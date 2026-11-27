@@ -43,3 +43,13 @@ export function listHeight(rows) {
   const shown = Math.min(rows, MAX_ROWS);
   return shown ? shown * ROW + (shown - 1) * GAP : STATUS_LINE;
 }
+
+const NEW_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+
+export function withCreateRow(matches, repos, query) {
+  const name = query.trim();
+  if (!NEW_NAME.test(name) || repos.some((p) => p.path.endsWith(`/projects/${name}`))) return matches;
+  return [...matches.slice(0, MAX_ROWS - 1), { name, create: true }];
+}
+
+export const INIT_SCRIPT = 'p="$HOME/projects/$1"; [ -z "$(ls -A "$p" 2>/dev/null)" ] || { echo "$p is not empty" >&2; exit 1; }; git init -q -b main "$p" && echo "$p"';
