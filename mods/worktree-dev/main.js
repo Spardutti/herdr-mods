@@ -205,8 +205,9 @@ export default class Worktree extends View {
     const branch = this.text.trim();
     if (!branch) return "Type a branch name.";
     const path = `${this.root}/${this.repo.name}/${slug(branch)}`;
-    const exists = (await git(this.repo.main, ["show-ref", "--verify", "--quiet", `refs/heads/${branch}`], this.on)).ok;
-    const add = exists ? ["worktree", "add", path, branch] : ["worktree", "add", "--no-track", "-b", branch, path, await this.base()];
+    // A slow or failed fetch must not block the worktree; the last-known refs still work.
+    await git(this.repo.top, ["fetch", "origin"], this.on, 30_000).catch(() => null);
+    const add = (await this.known(branch)) ? ["worktree", "add", path, branch] : ["worktree", "add", "--no-track", "-b", branch, path, await this.base()];
     const r = await git(this.repo.top, add, this.on, 600_000);
     if (!r.ok) return r.err || "git worktree add failed.";
     const p = props();
@@ -215,9 +216,14 @@ export default class Worktree extends View {
     return "";
   }
 
+  async known(branch) {
+    for (const ref of [`refs/heads/${branch}`, `refs/remotes/origin/${branch}`]) {
+      if ((await git(this.repo.main, ["show-ref", "--verify", "--quiet", ref], this.on)).ok) return true;
+    }
+    return false;
+  }
+
   async base() {
-    // A slow or failed fetch must not block the worktree; the last-known refs still work.
-    await git(this.repo.top, ["fetch", "origin"], this.on, 30_000).catch(() => null);
     for (const name of ["dev", "develop", "main", "master"]) for (const ref of [`origin/${name}`, `refs/heads/${name}`]) {
       if ((await git(this.repo.top, ["rev-parse", "--verify", "--quiet", `${ref}^{commit}`], this.on)).ok) return ref;
     }
