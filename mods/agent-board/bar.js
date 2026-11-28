@@ -42,7 +42,12 @@ function filters(t) {
 
 function closeAgent(c, t) {
   return div().id(`close-${c.address}`).text_color(t.dim).hover((s) => s.text_color(t.foreground)).on_mouse_down("left", stop)
-    .on_click((_e, cx) => { cx.stop_propagation(); run("pane.close", { pane: c.pane }); }).child(svg("mods/pane/close.svg").size(12));
+    .on_click((_e, cx) => { cx.stop_propagation(); c.worktree ? askRemoveWorktree(c) : run("pane.close", { pane: c.pane }); }).child(svg("mods/pane/close.svg").size(12));
+}
+
+function askRemoveWorktree(c) {
+  const keep = { name: "pane.close", args: { pane: c.pane } };
+  openOverlay({ mod: "worktree-dev", kind: "dialog", width: 460, height: 280, props: { space: c.space, folder: c.cwd, action: "remove", keep } });
 }
 
 function agentStrip(t) {

@@ -292,6 +292,8 @@ export default class Worktree extends View {
       return cx.notify();
     }
     if (e.key === "enter" && props()?.action === "remove") return this.go(cx);
+    const keep = props()?.keep;
+    if (e.key === "k" && keep && !this.busy) { this.close(); run(keep.name, keep.args); }
   }
 
   renderOpen(t) {
@@ -413,7 +415,7 @@ export default class Worktree extends View {
           .text_color(t.dim)
           .gap(6)
           .when(this.busy, (el) => el.child(div().frames(["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"], 90)))
-          .child(this.busy ? "working…" : blocked ? "esc close" : remove ? "↵ remove · esc cancel" : "↵ create · esc cancel"),
+          .child(this.busy ? "working…" : blocked ? "esc close" : remove ? `↵ remove${props()?.keep ? " · k keep worktree" : ""} · esc cancel` : "↵ create · esc cancel"),
       );
   }
 }
