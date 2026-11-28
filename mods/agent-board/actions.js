@@ -1,5 +1,5 @@
-import { agents, exec, knownAgents, openOverlay, panes, run, setShared, spaces } from "herdr";
-import { closePrompt, mainCheckout, othersInSpace } from "./cards.js";
+import { exec, knownAgents, openOverlay, run, setShared, spaces } from "herdr";
+import { mainCheckout } from "./cards.js";
 
 export const VIEW = "agent-board.view";
 
@@ -39,13 +39,13 @@ export async function newAgent(card) {
   else run("space.new", { folder: main, machine: card.machine ?? "", argv, focus: false });
 }
 
-/** Closes the agent's pane after asking; in a worktree the question offers removing it too. */
+/** Asks before closing the agent's pane; in a worktree the question offers removing it too. */
 export function closeCard(card) {
-  const { title, detail, command } = closePrompt(card, spaces(), panes());
   if (card.worktree) {
-    return openOverlay({ mod: "worktree-dev", kind: "dialog", width: 460, height: 280, props: { space: card.space, folder: card.cwd, action: "remove", keep: command, others: othersInSpace(card, agents()) } });
+    return openOverlay({ mod: "worktree-dev", kind: "dialog", width: 460, height: 280, props: { space: card.space, folder: card.cwd, action: "remove", keep: card.pane } });
   }
-  openOverlay({ mod: "agent-board", kind: "dialog", width: 420, height: 150, props: { part: "close", title, detail, command } });
+  const { pane, space, project } = card;
+  openOverlay({ mod: "agent-board", kind: "dialog", width: 420, height: 150, props: { part: "close", card: { pane, space, project } } });
 }
 
 export async function newWorktreeAgent(spaceId, folder, machine) {

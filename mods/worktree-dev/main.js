@@ -1,11 +1,12 @@
 // Worktree dialog: { space, action: "new" | "open" | "remove" } or
-// { folder, machine } for a repo without a space; optional { branch, tab, argv }, and for remove { keep: command } behind its Close agent only.
+// { folder, machine } for a repo without a space; optional { branch, tab, argv }, and for remove { keep: pane } offering Close agent only.
 
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input, Scrollbar } from "gpui-base";
-import { run, props, closeOverlay, theme, spaces, panes, terminals, exec, home, appHome, readTextFile, notify } from "herdr";
+import { run, props, closeOverlay, theme, spaces, panes, terminals, exec, home, appHome, readTextFile, notify, agents } from "herdr";
 import { copyLocalFiles } from "./local-files.js";
 import { choiceButtons, removeChoices } from "./remove-choices.js";
+import { keepCommand, otherAgents } from "./keep.js";
 
 // Where a space is now: its first terminal's live folder, else where it was made.
 function place(s, all = panes()) {
@@ -132,7 +133,7 @@ export default class Worktree extends View {
     this.text = props()?.branch ?? "";
     this.list = undefined; // open: the checkouts, once read
     this.at = 0;
-    this.choice = props()?.others && props()?.keep ? "keep" : "remove"; // remove: the highlighted button
+    this.choice = props()?.keep && this.others() ? "keep" : "remove"; // remove: the highlighted button
     this.input = InputState.new({ value: this.text, placeholder: this.opening ? "filter worktrees" : "branch name" });
     this.input.on("change", (_e, cx) => { this.text = this.input.value(); this.error = ""; this.at = 0; cx.notify(); });
     this.input.on("submit", (_e, cx) => this.go(cx));
@@ -180,6 +181,10 @@ export default class Worktree extends View {
   space() {
     const p = props() ?? {};
     return spaces().find((s) => s.id === p.space) ?? (p.folder ? { folder: p.folder, machine: p.machine ?? null, name: "" } : undefined);
+  }
+
+  others() {
+    return props()?.keep ? otherAgents(props().keep, props().space, agents()) : 0;
   }
 
   close() {
@@ -311,9 +316,9 @@ export default class Worktree extends View {
   pick(id, cx) {
     if (this.busy) return;
     if (id === "remove") return this.go(cx);
-    const keep = props().keep;
+    const keep = id === "keep" && keepCommand(props().keep, this.space(), panes());
     this.close();
-    if (id === "keep") run(keep.name, keep.args);
+    if (keep) run(keep.name, keep.args);
   }
 
   renderOpen(t) {
@@ -412,7 +417,7 @@ export default class Worktree extends View {
       .child(div().font_semibold().text_color(t.foreground).child(title))
       .child(div().text_color(t.muted).child(detail))
       .when(remove && this.dirty, (el) => el.child(div().text_color(t.blocked).child("It has uncommitted changes: they will be lost.")))
-      .when(remove && props()?.others > 0, (el) => el.child(div().text_color(t.blocked).child(`${props().others} other agent${props().others > 1 ? "s work" : " works"} here; Remove closes ${props().others > 1 ? "them" : "it"} too.`)))
+      .when(remove && this.others() > 0, (el) => el.child(div().text_color(t.blocked).child(`${this.others()} other agent${this.others() > 1 ? "s work" : " works"} here; Remove closes ${this.others() > 1 ? "them" : "it"} too.`)))
       .when(remove && this.unpushed.length > 0, (el) => el.child(div().text_color(t.blocked).child(`Submodule ${this.unpushed.join(", ")} has commits that aren't pushed anywhere: they will be lost.`)))
       .when(!remove && !blocked, (el) =>
         el.child(

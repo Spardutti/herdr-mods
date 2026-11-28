@@ -44,7 +44,7 @@
     {
       "id": "dialog-decides-on-press",
       "files": "^mods/[^/]+/(?![^/]*\\.test\\.)[^/]+\\.m?js$",
-      "message": "A dialog's button must re-check what it acts on when pressed, not run a command worked out when it opened (agent-board's close dialog got space.close in props, so a tab added while it was open would close too)."
+      "message": "A dialog's button must re-check what it acts on when pressed, not run a command worked out when it opened (as agent-board's close-agent.js does with closePrompt in pick())."
     }
   ]
 }
