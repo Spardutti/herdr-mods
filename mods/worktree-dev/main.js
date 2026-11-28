@@ -3,7 +3,7 @@
 
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input, Scrollbar } from "gpui-base";
-import { run, props, closeOverlay, theme, spaces, panes, terminals, exec, home, appHome, readTextFile } from "herdr";
+import { run, props, closeOverlay, theme, spaces, panes, terminals, exec, home, appHome, readTextFile, notify } from "herdr";
 import { copyLocalFiles } from "./local-files.js";
 
 // Where a space is now: its first terminal's live folder, else where it was made.
@@ -215,7 +215,8 @@ export default class Worktree extends View {
     const p = props();
     // Leave spaces unnamed so they follow the checkout folder and nest under the repo.
     run("space.new", { folder: path, machine: this.on ?? "", tab: p.tab, argv: p.argv });
-    return copied;
+    if (copied) notify({ title: "Claude's skills and hooks weren't copied", body: copied, level: "warning" });
+    return "";
   }
 
   async known(branch) {
