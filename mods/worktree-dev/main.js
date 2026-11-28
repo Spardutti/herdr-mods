@@ -7,6 +7,7 @@ import { run, props, closeOverlay, theme, spaces, panes, terminals, exec, home, 
 import { copyLocalFiles } from "./local-files.js";
 import { choiceButtons, removeChoices } from "./remove-choices.js";
 import { keepCommand, otherAgents } from "./keep.js";
+import { branchName } from "./branch-name.js";
 
 // Where a space is now: its first terminal's live folder, else where it was made.
 function place(s, all = panes()) {
@@ -210,7 +211,7 @@ export default class Worktree extends View {
   }
 
   async create() {
-    const branch = this.text.trim();
+    const branch = branchName(this.text);
     if (!branch) return "Type a branch name.";
     const path = `${this.root}/${this.repo.name}/${slug(branch)}`;
     // A slow or failed fetch must not block the worktree; the last-known refs still work.
