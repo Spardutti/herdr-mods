@@ -1,9 +1,10 @@
 // Worktree dialog: { space, action: "new" | "open" | "remove" } or
-// { folder, machine } for a repo without a space; optional { branch, tab, argv }.
+// { folder, machine } for a repo without a space; optional { branch, tab, argv }, and for remove { keep: command } run by k.
 
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input, Scrollbar } from "gpui-base";
-import { run, props, closeOverlay, theme, spaces, panes, terminals, exec, home, appHome, readTextFile } from "herdr";
+import { run, props, closeOverlay, theme, spaces, panes, terminals, exec, home, appHome, readTextFile, notify } from "herdr";
+import { copyLocalFiles } from "./local-files.js";
 
 // Where a space is now: its first terminal's live folder, else where it was made.
 function place(s, all = panes()) {
@@ -210,9 +211,11 @@ export default class Worktree extends View {
     const add = (await this.known(branch)) ? ["worktree", "add", path, branch] : ["worktree", "add", "--no-track", "-b", branch, path, await this.base()];
     const r = await git(this.repo.top, add, this.on, 600_000);
     if (!r.ok) return r.err || "git worktree add failed.";
+    const copied = await copyLocalFiles(this.repo.top, path, this.on);
     const p = props();
     // Leave spaces unnamed so they follow the checkout folder and nest under the repo.
     run("space.new", { folder: path, machine: this.on ?? "", tab: p.tab, argv: p.argv });
+    if (copied) notify({ title: "Claude's skills and hooks weren't copied", body: copied, level: "warning" });
     return "";
   }
 
@@ -290,6 +293,8 @@ export default class Worktree extends View {
       return cx.notify();
     }
     if (e.key === "enter" && props()?.action === "remove") return this.go(cx);
+    const keep = props()?.keep;
+    if (e.keystroke === "k" && keep && !this.busy) { this.close(); run(keep.name, keep.args); }
   }
 
   renderOpen(t) {
@@ -411,7 +416,7 @@ export default class Worktree extends View {
           .text_color(t.dim)
           .gap(6)
           .when(this.busy, (el) => el.child(div().frames(["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"], 90)))
-          .child(this.busy ? "working…" : blocked ? "esc close" : remove ? "↵ remove · esc cancel" : "↵ create · esc cancel"),
+          .child(this.busy ? "working…" : props()?.keep ? `${blocked ? "" : "↵ remove · "}k close agent only · esc cancel` : blocked ? "esc close" : remove ? "↵ remove · esc cancel" : "↵ create · esc cancel"),
       );
   }
 }
