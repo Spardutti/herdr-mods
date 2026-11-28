@@ -1,5 +1,5 @@
-import { exec, knownAgents, openOverlay, panes, run, setShared, spaces } from "herdr";
-import { closePrompt, mainCheckout } from "./cards.js";
+import { agents, exec, knownAgents, openOverlay, panes, run, setShared, spaces } from "herdr";
+import { closePrompt, mainCheckout, othersInSpace } from "./cards.js";
 
 export const VIEW = "agent-board.view";
 
@@ -43,7 +43,7 @@ export async function newAgent(card) {
 export function closeCard(card) {
   const { title, detail, command } = closePrompt(card, spaces(), panes());
   if (card.worktree) {
-    return openOverlay({ mod: "worktree-dev", kind: "dialog", width: 460, height: 280, props: { space: card.space, folder: card.cwd, action: "remove", keep: command } });
+    return openOverlay({ mod: "worktree-dev", kind: "dialog", width: 460, height: 280, props: { space: card.space, folder: card.cwd, action: "remove", keep: command, others: othersInSpace(card, agents()) } });
   }
   openOverlay({ mod: "agent-board", kind: "dialog", width: 420, height: 150, props: { part: "close", title, detail, command } });
 }

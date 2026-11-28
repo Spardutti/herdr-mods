@@ -97,3 +97,7 @@ export function closePrompt(card, spaceList, paneList) {
 export function mainCheckout(commonDir) {
   return commonDir.endsWith("/.git") ? commonDir.slice(0, -5) : null;
 }
+
+export function othersInSpace(card, agentList) {
+  return agentList.filter((a) => a.space === card.space && a.pane !== card.pane).length;
+}

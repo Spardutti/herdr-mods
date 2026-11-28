@@ -132,7 +132,7 @@ export default class Worktree extends View {
     this.text = props()?.branch ?? "";
     this.list = undefined; // open: the checkouts, once read
     this.at = 0;
-    this.choice = 0; // remove: the highlighted button
+    this.choice = props()?.others && props()?.keep ? "keep" : "remove"; // remove: the highlighted button
     this.input = InputState.new({ value: this.text, placeholder: this.opening ? "filter worktrees" : "branch name" });
     this.input.on("change", (_e, cx) => { this.text = this.input.value(); this.error = ""; this.at = 0; cx.notify(); });
     this.input.on("submit", (_e, cx) => this.go(cx));
@@ -299,8 +299,8 @@ export default class Worktree extends View {
 
   removeKey(e, cx) {
     const list = removeChoices(this.repo, props().keep);
-    const at = Math.min(this.choice, list.length - 1);
-    if (e.key === "left" || e.key === "right") this.choice = (at + (e.key === "right" ? 1 : list.length - 1)) % list.length;
+    const at = Math.max(0, list.indexOf(this.choice));
+    if (e.key === "left" || e.key === "right") this.choice = list[(at + (e.key === "right" ? 1 : list.length - 1)) % list.length];
     else if (e.key === "enter") return this.pick(list[at], cx);
     else if (e.keystroke === "k" && props().keep) return this.pick("keep", cx);
     else return;
@@ -412,6 +412,7 @@ export default class Worktree extends View {
       .child(div().font_semibold().text_color(t.foreground).child(title))
       .child(div().text_color(t.muted).child(detail))
       .when(remove && this.dirty, (el) => el.child(div().text_color(t.blocked).child("It has uncommitted changes: they will be lost.")))
+      .when(remove && props()?.others > 0, (el) => el.child(div().text_color(t.blocked).child(`${props().others} other agent${props().others > 1 ? "s work" : " works"} here; Remove closes ${props().others > 1 ? "them" : "it"} too.`)))
       .when(remove && this.unpushed.length > 0, (el) => el.child(div().text_color(t.blocked).child(`Submodule ${this.unpushed.join(", ")} has commits that aren't pushed anywhere: they will be lost.`)))
       .when(!remove && !blocked, (el) =>
         el.child(
@@ -441,6 +442,6 @@ export default class Worktree extends View {
 
   renderChoices(t) {
     const list = removeChoices(this.repo, props().keep);
-    return choiceButtons(t, list, Math.min(this.choice, list.length - 1), (id, cx) => this.pick(id, cx));
+    return choiceButtons(t, list, Math.max(0, list.indexOf(this.choice)), (id, cx) => this.pick(id, cx));
   }
 }
