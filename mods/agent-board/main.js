@@ -1,10 +1,11 @@
 import { View } from "gpui-kit";
 import { checking, focused, nextCommand, openOverlay, props, setAgentOrder, agents, panes } from "herdr";
 import { AgentSearch } from "./search.js";
+import { CloseSpace } from "./close-space.js";
 import { renderBar } from "./bar.js";
 import { renderBoard } from "./board.js";
 import { boardCards, needsYou, nextCard, prevCard } from "./cards.js";
-import { openChat, showBoard } from "./actions.js";
+import { closeCard, openChat, showBoard } from "./actions.js";
 
 const PICK = {
   next: (cards) => nextCard(cards, focused()?.pane),
@@ -16,10 +17,11 @@ function openSearch() {
   openOverlay({ mod: "agent-board", props: { part: "search" }, kind: "dialog", width: 640, height: 0.6 });
 }
 
-/** The agent board; with props {part: "bar"} the header above it, {part: "search"} the Ctrl+P pop-up. */
+/** The agent board; with props {part: "bar"} the header above it, {part: "search"} the Ctrl+P pop-up, {part: "close"} the close-space dialog. */
 export default class AgentBoard extends View {
   init(_props, cx) {
-    if (props()?.part === "search") this.search = new AgentSearch(cx);
+    if (props()?.part === "search") this.dialog = new AgentSearch(cx);
+    else if (props()?.part === "close") this.dialog = new CloseSpace(cx);
     else if (props()?.part === "bar") this.listenAsBar(cx);
     else this.listenAsBoard(cx);
   }
@@ -32,7 +34,9 @@ export default class AgentBoard extends View {
         const command = String(await nextCommand()).split(".").pop();
         if (command === "find") { openSearch(); continue; }
         if (command === "board") { showBoard(); continue; }
-        const card = PICK[command]?.(boardCards(agents(), panes(), "all"));
+        const cards = boardCards(agents(), panes(), "all");
+        if (command === "close") { const here = cards.find((c) => c.pane === focused()?.pane); if (here) closeCard(here); continue; }
+        const card = PICK[command]?.(cards);
         if (card) openChat(card);
       }
     });
@@ -54,7 +58,7 @@ export default class AgentBoard extends View {
   }
 
   render() {
-    if (this.search) return this.search.render();
+    if (this.dialog) return this.dialog.render();
     if (props()?.part === "bar") return renderBar(this);
     setAgentOrder(boardCards(agents(), panes(), "all").map((c) => c.address));
     return renderBoard(this);

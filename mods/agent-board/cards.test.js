@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { boardCards, emptyMessage, filterCounts, isWorktree, matchCards, moveSelection, needsYou, nextCard, prevCard } from "./cards.js";
+import { boardCards, emptyMessage, filterCounts, isWorktree, keepWorktreeCommand, lastInSpace, matchCards, moveSelection, needsYou, nextCard, prevCard } from "./cards.js";
 
 const agent = (address, status, extra = {}) => ({
   address, status, pane: `p-${address}`, space: "wsl/s1", space_name: "app", title: "", tab_name: "2", seq: 0, ...extra,
@@ -135,5 +135,22 @@ test("emptyMessage reads as a sentence for every filter: Needs you gives \"Nobod
     "Nobody needs you right now. Pick All in the bar to see the other 2.",
     "No agents are working. Pick All in the bar to see the other 2.",
     "No agents are idle. Pick All in the bar to see the other 2.",
+  ]);
+});
+
+test("lastInSpace is true for the only pane of space s1, false when its other tab holds a second pane", () => {
+  const spaces = [{ id: "s1", tabs: [{ id: "t1" }, { id: "t2" }] }, { id: "s2", tabs: [{ id: "t3" }] }];
+  const card = { pane: "p1", space: "s1" };
+  const alone = [{ pane: "p1", tab: "t1" }, { pane: "p9", tab: "t3" }];
+  assert.deepEqual([lastInSpace(card, spaces, alone), lastInSpace(card, spaces, [...alone, { pane: "p2", tab: "t2" }])], [true, false]);
+});
+
+test("keepWorktreeCommand closes space s1 confirmed for its last pane, else only pane p1", () => {
+  const spaces = [{ id: "s1", tabs: [{ id: "t1" }] }];
+  const card = { pane: "p1", space: "s1" };
+  const alone = [{ pane: "p1", tab: "t1" }];
+  assert.deepEqual([keepWorktreeCommand(card, spaces, alone), keepWorktreeCommand(card, spaces, [...alone, { pane: "p2", tab: "t1" }])], [
+    { name: "space.close", args: { id: "s1", confirmed: true } },
+    { name: "pane.close", args: { pane: "p1" } },
   ]);
 });
