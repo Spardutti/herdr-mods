@@ -5,6 +5,9 @@
     "f9": "agent-board.prev",
     "f10": "agent-board.next",
     "ctrl-p": "agent-board.find",
-    "f1": "agent-board.board"
+    "f1": "agent-board.board",
+    "alt-down": "agent-board.needs",
+    "alt-left": "agent-board.prev",
+    "alt-right": "agent-board.next"
   }
 }
