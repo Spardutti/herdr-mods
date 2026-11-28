@@ -85,3 +85,10 @@ export function lastInSpace(card, spaceList, paneList) {
   const tabs = new Set(spaceList.find((s) => s.id === card.space)?.tabs.map((t) => t.id) ?? []);
   return paneList.filter((p) => tabs.has(p.tab)).length === 1;
 }
+
+/** What the worktree dialog's "Close agent only" runs; a last pane closes its space, so it says so up front. */
+export function keepWorktreeCommand(card, spaceList, paneList) {
+  return lastInSpace(card, spaceList, paneList)
+    ? { name: "space.close", args: { id: card.space, confirmed: true } }
+    : { name: "pane.close", args: { pane: card.pane } };
+}
