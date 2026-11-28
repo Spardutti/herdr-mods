@@ -40,6 +40,11 @@
       "id": "check-target-where-you-act",
       "files": "^mods/[^/]+/(?![^/]*\\.test\\.)[^/]+\\.m?js$",
       "message": "Before git init, worktree add or another create, check the real target in the same step (the path is empty, the branch on local and origin), not a list gathered earlier for something else (project-search trusted find's repo list and ran git init over full folders; worktree-dev checked only local branches)."
+    },
+    {
+      "id": "dialog-decides-on-press",
+      "files": "^mods/[^/]+/(?![^/]*\\.test\\.)[^/]+\\.m?js$",
+      "message": "A dialog's button must re-check what it acts on when pressed, not run a command worked out when it opened (agent-board's close dialog got space.close in props, so a tab added while it was open would close too)."
     }
   ]
 }
