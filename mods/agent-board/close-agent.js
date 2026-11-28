@@ -4,7 +4,7 @@ import { closeOverlay, props, run, theme } from "herdr";
 
 const CHOICES = [{ id: "cancel", label: "Cancel" }, { id: "close", label: "Close" }];
 
-/** Asks before closing an agent: props { name, detail, command }; ←/→ choose and Enter picks. */
+/** Asks before closing an agent: props { title, detail, command }; ←/→ choose and Enter picks. */
 export class CloseAgent {
   constructor(cx) {
     this.at = 1;
@@ -38,7 +38,7 @@ export class CloseAgent {
     const t = theme();
     return v_flex().id("close-agent").track_focus(this.handle).on_key_down((e, cx) => this.key(e, cx))
       .size_full().p(18).gap(12).bg(t.popover).text_size(13)
-      .child(div().text_size(15).font_semibold().text_color(t.foreground).child(`Close ${props().name}?`))
+      .child(div().text_size(15).font_semibold().text_color(t.foreground).child(props().title))
       .child(div().flex_1().text_color(t.muted).child(props().detail))
       .child(h_flex().justify_end().gap(8).text_size(12).children(CHOICES.map((c, i) => this.button(c, i, t))));
   }

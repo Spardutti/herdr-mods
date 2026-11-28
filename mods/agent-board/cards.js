@@ -86,11 +86,11 @@ export function lastInSpace(card, spaceList, paneList) {
   return paneList.filter((p) => tabs.has(p.tab)).length === 1;
 }
 
-/** What closing the card's agent does, and the line that warns about it. */
+/** What closing the card's agent does, and the words that ask about it. */
 export function closePrompt(card, spaceList, paneList) {
   return lastInSpace(card, spaceList, paneList)
-    ? { detail: "It's the last agent in its space, so the space closes too.", command: { name: "space.close", args: { id: card.space, confirmed: true } } }
-    : { detail: "Only this agent closes; the rest of its space stays.", command: { name: "pane.close", args: { pane: card.pane } } };
+    ? { title: `Close ${card.project}?`, detail: "It's the last agent in its space, so the space closes too.", command: { name: "space.close", args: { id: card.space, confirmed: true } } }
+    : { title: `Close this ${card.project} agent?`, detail: "Only this agent closes; the rest of its space stays.", command: { name: "pane.close", args: { pane: card.pane } } };
 }
 
 /** The main checkout behind a worktree's git common dir; null for a bare repo, which has none. */

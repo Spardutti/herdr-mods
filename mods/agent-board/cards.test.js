@@ -147,7 +147,8 @@ test("lastInSpace is true for the only pane of space s1, false when its other ta
 
 test("closePrompt for the last pane of s1 closes the space confirmed and says so", () => {
   const spaces = [{ id: "s1", tabs: [{ id: "t1" }] }];
-  assert.deepEqual(closePrompt({ pane: "p1", space: "s1" }, spaces, [{ pane: "p1", tab: "t1" }]), {
+  assert.deepEqual(closePrompt({ pane: "p1", space: "s1", project: "app" }, spaces, [{ pane: "p1", tab: "t1" }]), {
+    title: "Close app?",
     detail: "It's the last agent in its space, so the space closes too.",
     command: { name: "space.close", args: { id: "s1", confirmed: true } },
   });
@@ -156,7 +157,8 @@ test("closePrompt for the last pane of s1 closes the space confirmed and says so
 test("closePrompt with a second pane in s1 closes only pane p1", () => {
   const spaces = [{ id: "s1", tabs: [{ id: "t1" }] }];
   const panes = [{ pane: "p1", tab: "t1" }, { pane: "p2", tab: "t1" }];
-  assert.deepEqual(closePrompt({ pane: "p1", space: "s1" }, spaces, panes), {
+  assert.deepEqual(closePrompt({ pane: "p1", space: "s1", project: "app" }, spaces, panes), {
+    title: "Close this app agent?",
     detail: "Only this agent closes; the rest of its space stays.",
     command: { name: "pane.close", args: { pane: "p1" } },
   });

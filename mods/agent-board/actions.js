@@ -41,11 +41,11 @@ export async function newAgent(card) {
 
 /** Closes the agent's pane after asking; in a worktree the question offers removing it too. */
 export function closeCard(card) {
-  const { detail, command } = closePrompt(card, spaces(), panes());
+  const { title, detail, command } = closePrompt(card, spaces(), panes());
   if (card.worktree) {
     return openOverlay({ mod: "worktree-dev", kind: "dialog", width: 460, height: 280, props: { space: card.space, folder: card.cwd, action: "remove", keep: command } });
   }
-  openOverlay({ mod: "agent-board", kind: "dialog", width: 420, height: 150, props: { part: "close", name: card.project, detail, command } });
+  openOverlay({ mod: "agent-board", kind: "dialog", width: 420, height: 150, props: { part: "close", title, detail, command } });
 }
 
 export async function newWorktreeAgent(spaceId, folder, machine) {
