@@ -311,8 +311,9 @@ export default class Worktree extends View {
   pick(id, cx) {
     if (this.busy) return;
     if (id === "remove") return this.go(cx);
+    const keep = props().keep;
     this.close();
-    if (id === "keep") run(props().keep.name, props().keep.args);
+    if (id === "keep") run(keep.name, keep.args);
   }
 
   renderOpen(t) {
