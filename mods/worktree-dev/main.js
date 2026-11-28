@@ -1,10 +1,11 @@
 // Worktree dialog: { space, action: "new" | "open" | "remove" } or
-// { folder, machine } for a repo without a space; optional { branch, tab, argv }, and for remove { keep: command } run by k.
+// { folder, machine } for a repo without a space; optional { branch, tab, argv }, and for remove { keep: command } behind its Close agent only.
 
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input, Scrollbar } from "gpui-base";
 import { run, props, closeOverlay, theme, spaces, panes, terminals, exec, home, appHome, readTextFile, notify } from "herdr";
 import { copyLocalFiles } from "./local-files.js";
+import { choiceButtons, removeChoices } from "./remove-choices.js";
 
 // Where a space is now: its first terminal's live folder, else where it was made.
 function place(s, all = panes()) {
@@ -131,6 +132,7 @@ export default class Worktree extends View {
     this.text = props()?.branch ?? "";
     this.list = undefined; // open: the checkouts, once read
     this.at = 0;
+    this.choice = 0; // remove: the highlighted button
     this.input = InputState.new({ value: this.text, placeholder: this.opening ? "filter worktrees" : "branch name" });
     this.input.on("change", (_e, cx) => { this.text = this.input.value(); this.error = ""; this.at = 0; cx.notify(); });
     this.input.on("submit", (_e, cx) => this.go(cx));
@@ -292,9 +294,25 @@ export default class Worktree extends View {
       cx.stop_propagation();
       return cx.notify();
     }
-    if (e.key === "enter" && props()?.action === "remove") return this.go(cx);
-    const keep = props()?.keep;
-    if (e.keystroke === "k" && keep && !this.busy) { this.close(); run(keep.name, keep.args); }
+    if (props()?.action === "remove") this.removeKey(e, cx);
+  }
+
+  removeKey(e, cx) {
+    const list = removeChoices(this.repo, props().keep);
+    const at = Math.min(this.choice, list.length - 1);
+    if (e.key === "left" || e.key === "right") this.choice = (at + (e.key === "right" ? 1 : list.length - 1)) % list.length;
+    else if (e.key === "enter") return this.pick(list[at], cx);
+    else if (e.keystroke === "k" && props().keep) return this.pick("keep", cx);
+    else return;
+    cx.stop_propagation();
+    cx.notify();
+  }
+
+  pick(id, cx) {
+    if (this.busy) return;
+    if (id === "remove") return this.go(cx);
+    this.close();
+    if (id === "keep") run(props().keep.name, props().keep.args);
   }
 
   renderOpen(t) {
@@ -409,14 +427,19 @@ export default class Worktree extends View {
       )
       .when(Boolean(this.error), (el) => el.child(div().text_color(t.blocked).child(this.error)))
       .child(div().flex_1())
-      .child(
+      .child(remove && !this.busy ? this.renderChoices(t) :
         h_flex()
           .justify_end()
           .text_size(11)
           .text_color(t.dim)
           .gap(6)
           .when(this.busy, (el) => el.child(div().frames(["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"], 90)))
-          .child(this.busy ? "working…" : props()?.keep ? `${blocked ? "" : "↵ remove · "}k close agent only · esc cancel` : blocked ? "esc close" : remove ? "↵ remove · esc cancel" : "↵ create · esc cancel"),
+          .child(this.busy ? "working…" : blocked ? "esc close" : "↵ create · esc cancel"),
       );
+  }
+
+  renderChoices(t) {
+    const list = removeChoices(this.repo, props().keep);
+    return choiceButtons(t, list, Math.min(this.choice, list.length - 1), (id, cx) => this.pick(id, cx));
   }
 }
