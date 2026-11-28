@@ -79,3 +79,9 @@ export function emptyMessage(total, filter) {
   if (!total || filter === "all") return EMPTY;
   return `${EMPTY_FILTER[filter]} Pick All in the bar to see the other ${total}.`;
 }
+
+/** Whether closing the card's pane closes its whole space, which Herdr asks about first. */
+export function lastInSpace(card, spaceList, paneList) {
+  const tabs = new Set(spaceList.find((s) => s.id === card.space)?.tabs.map((t) => t.id) ?? []);
+  return paneList.filter((p) => tabs.has(p.tab)).length === 1;
+}

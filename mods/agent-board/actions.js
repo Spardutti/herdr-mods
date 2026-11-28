@@ -1,4 +1,5 @@
-import { knownAgents, openOverlay, run, setShared } from "herdr";
+import { knownAgents, openOverlay, panes, run, setShared, spaces } from "herdr";
+import { lastInSpace } from "./cards.js";
 
 export const VIEW = "agent-board.view";
 
@@ -25,6 +26,18 @@ export function showBoard() {
 
 export async function newAgent(spaceId, machine) {
   run("tab.new", { name: "Claude Code", space: spaceId, argv: await claudeArgv(machine), focus: false });
+}
+
+/** Closes the agent's pane; one in a worktree first asks whether to remove the worktree too. */
+export function closeCard(card) {
+  if (!card.worktree && lastInSpace(card, spaces(), panes())) return askCloseSpace(card);
+  if (!card.worktree) return run("pane.close", { pane: card.pane });
+  const keep = { name: "pane.close", args: { pane: card.pane } };
+  openOverlay({ mod: "worktree-dev", kind: "dialog", width: 460, height: 280, props: { space: card.space, folder: card.cwd, action: "remove", keep } });
+}
+
+function askCloseSpace(card) {
+  openOverlay({ mod: "agent-board", kind: "dialog", width: 420, height: 150, props: { part: "close", space: card.space, name: card.project } });
 }
 
 export async function newWorktreeAgent(spaceId, folder, machine) {

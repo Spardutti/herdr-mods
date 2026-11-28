@@ -8,6 +8,7 @@
     "f1": "agent-board.board",
     "alt-down": "agent-board.needs",
     "alt-left": "agent-board.prev",
-    "alt-right": "agent-board.next"
+    "alt-right": "agent-board.next",
+    "alt-up": "agent-board.close"
   }
 }

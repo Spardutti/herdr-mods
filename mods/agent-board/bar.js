@@ -3,7 +3,7 @@ import { h_flex } from "gpui-base";
 import { agents, focused, openOverlay, panes, run, setShared, shared, theme, window } from "herdr";
 import { ORDER, boardCards, filterCounts } from "./cards.js";
 import { FILTER, LABELS as STATUS_LABELS } from "./board.js";
-import { VIEW, openChat, showBoard } from "./actions.js";
+import { VIEW, closeCard, openChat, showBoard } from "./actions.js";
 
 const LABELS = { all: "All", ...STATUS_LABELS };
 const stop = (_e, cx) => cx.stop_propagation();
@@ -42,12 +42,7 @@ function filters(t) {
 
 function closeAgent(c, t) {
   return div().id(`close-${c.address}`).text_color(t.dim).hover((s) => s.text_color(t.foreground)).on_mouse_down("left", stop)
-    .on_click((_e, cx) => { cx.stop_propagation(); c.worktree ? askRemoveWorktree(c) : run("pane.close", { pane: c.pane }); }).child(svg("mods/pane/close.svg").size(12));
-}
-
-function askRemoveWorktree(c) {
-  const keep = { name: "pane.close", args: { pane: c.pane } };
-  openOverlay({ mod: "worktree-dev", kind: "dialog", width: 460, height: 280, props: { space: c.space, folder: c.cwd, action: "remove", keep } });
+    .on_click((_e, cx) => { cx.stop_propagation(); closeCard(c); }).child(svg("mods/pane/close.svg").size(12));
 }
 
 function agentStrip(t) {

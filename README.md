@@ -192,7 +192,7 @@ Each card has **+ Agent** (Claude Code in a new tab of that space) and **+ Agent
 The bar on top filters the cards by status and holds the project search.
 
 Install `mods/agent-board`, `mods/project-search` and `mods/worktree-dev`, then copy `layouts/agent-board.json` into `~/.config/herdr-app/layouts/`.
-Switch to it with `ctrl-shift-l`. Merge `mods/agent-board/keys.json` into yours for its keys there: `f1` goes back to the board, `ctrl-k` opens the project search, `ctrl-p` finds an open agent (type, ↑/↓, Enter), `f9` / `f10` open the previous / next card's chat, `f8` the first one that needs you. Its right column is the one from this repo's mods; change it in the layout to fit yours.
+Switch to it with `ctrl-shift-l`. Merge `mods/agent-board/keys.json` into yours for its keys there: `f1` goes back to the board, `ctrl-k` opens the project search, `ctrl-p` finds an open agent (type, ↑/↓, Enter), `f9` / `f10` or `alt-left` / `alt-right` open the previous / next card's chat, `f8` or `alt-down` the first one that needs you, and `alt-up` closes the open agent like its chip's ✕ (in a worktree it asks whether to remove the worktree too; for the last agent in its space it asks before closing the space, with ←/→ to choose). Its right column is the one from this repo's mods; change it in the layout to fit yours.
 
 ## project-search
 
