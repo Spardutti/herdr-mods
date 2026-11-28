@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { boardCards, emptyMessage, filterCounts, isWorktree, keepWorktreeCommand, lastInSpace, matchCards, moveSelection, needsYou, nextCard, prevCard } from "./cards.js";
+import { boardCards, emptyMessage, filterCounts, closePrompt, isWorktree, lastInSpace, mainCheckout, matchCards, othersInSpace, moveSelection, needsYou, nextCard, prevCard } from "./cards.js";
 
 const agent = (address, status, extra = {}) => ({
   address, status, pane: `p-${address}`, space: "wsl/s1", space_name: "app", title: "", tab_name: "2", seq: 0, ...extra,
@@ -145,12 +145,30 @@ test("lastInSpace is true for the only pane of space s1, false when its other ta
   assert.deepEqual([lastInSpace(card, spaces, alone), lastInSpace(card, spaces, [...alone, { pane: "p2", tab: "t2" }])], [true, false]);
 });
 
-test("keepWorktreeCommand closes space s1 confirmed for its last pane, else only pane p1", () => {
+test("closePrompt for the last pane of s1 closes the space confirmed and says so", () => {
   const spaces = [{ id: "s1", tabs: [{ id: "t1" }] }];
-  const card = { pane: "p1", space: "s1" };
-  const alone = [{ pane: "p1", tab: "t1" }];
-  assert.deepEqual([keepWorktreeCommand(card, spaces, alone), keepWorktreeCommand(card, spaces, [...alone, { pane: "p2", tab: "t1" }])], [
-    { name: "space.close", args: { id: "s1", confirmed: true } },
-    { name: "pane.close", args: { pane: "p1" } },
-  ]);
+  assert.deepEqual(closePrompt({ pane: "p1", space: "s1", project: "app" }, spaces, [{ pane: "p1", tab: "t1" }]), {
+    title: "Close app?",
+    detail: "It's the last agent in its space, so the space closes too.",
+    command: { name: "space.close", args: { id: "s1", confirmed: true } },
+  });
+});
+
+test("closePrompt with a second pane in s1 closes only pane p1", () => {
+  const spaces = [{ id: "s1", tabs: [{ id: "t1" }] }];
+  const panes = [{ pane: "p1", tab: "t1" }, { pane: "p2", tab: "t1" }];
+  assert.deepEqual(closePrompt({ pane: "p1", space: "s1", project: "app" }, spaces, panes), {
+    title: "Close this app agent?",
+    detail: "Only this agent closes; the rest of its space stays.",
+    command: { name: "pane.close", args: { pane: "p1" } },
+  });
+});
+
+test("mainCheckout of \"/h/app/.git\" is \"/h/app\", and a bare repo's \"/h/app/.bare\" has none", () => {
+  assert.deepEqual([mainCheckout("/h/app/.git"), mainCheckout("/h/app/.bare")], ["/h/app", null]);
+});
+
+test("othersInSpace counts the 2 other agents in space s1 and skips p1 itself and space s2", () => {
+  const agents = [{ pane: "p1", space: "s1" }, { pane: "p2", space: "s1" }, { pane: "p3", space: "s1" }, { pane: "p4", space: "s2" }];
+  assert.equal(othersInSpace({ pane: "p1", space: "s1" }, agents), 2);
 });

@@ -1,7 +1,7 @@
 import { View } from "gpui-kit";
 import { checking, focused, nextCommand, openOverlay, props, setAgentOrder, agents, panes } from "herdr";
 import { AgentSearch } from "./search.js";
-import { CloseSpace } from "./close-space.js";
+import { CloseAgent } from "./close-agent.js";
 import { renderBar } from "./bar.js";
 import { renderBoard } from "./board.js";
 import { boardCards, needsYou, nextCard, prevCard } from "./cards.js";
@@ -17,11 +17,11 @@ function openSearch() {
   openOverlay({ mod: "agent-board", props: { part: "search" }, kind: "dialog", width: 640, height: 0.6 });
 }
 
-/** The agent board; with props {part: "bar"} the header above it, {part: "search"} the Ctrl+P pop-up, {part: "close"} the close-space dialog. */
+/** The agent board; with props {part: "bar"} the header above it, {part: "search"} the Ctrl+P pop-up, {part: "close"} the close-agent dialog. */
 export default class AgentBoard extends View {
   init(_props, cx) {
     if (props()?.part === "search") this.dialog = new AgentSearch(cx);
-    else if (props()?.part === "close") this.dialog = new CloseSpace(cx);
+    else if (props()?.part === "close") this.dialog = new CloseAgent(cx);
     else if (props()?.part === "bar") this.listenAsBar(cx);
     else this.listenAsBoard(cx);
   }

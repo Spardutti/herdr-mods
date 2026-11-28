@@ -47,7 +47,7 @@ export function renderCard(card, t, selected) {
         .when(Boolean(branch), (el) => el.child(chip(`branch-${key}`, branch, card.worktree ? t.accent : t.muted))))
       .child(div().h(40).overflow_hidden().text_size(13).text_color(card.status === "blocked" ? t.foreground : t.muted).child(card.title)))
     .child(h_flex().gap(6).px(10).py(8).border_t_1().border_color(t.border).bg(t.chrome)
-      .child(cardButton(`new-${key}`, "+ Agent", () => newAgent(card.space, card.machine)))
+      .child(cardButton(`new-${key}`, "+ Agent", () => newAgent(card)))
       .child(cardButton(`wt-${key}`, "+ Agent in worktree", () => newWorktreeAgent(card.space, card.cwd, card.machine))));
   return selectionRing(key, selected, t).child(body);
 }

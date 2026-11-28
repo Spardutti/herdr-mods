@@ -86,9 +86,18 @@ export function lastInSpace(card, spaceList, paneList) {
   return paneList.filter((p) => tabs.has(p.tab)).length === 1;
 }
 
-/** What the worktree dialog's "Close agent only" runs; a last pane closes its space, so it says so up front. */
-export function keepWorktreeCommand(card, spaceList, paneList) {
+/** What closing the card's agent does, and the words that ask about it. */
+export function closePrompt(card, spaceList, paneList) {
   return lastInSpace(card, spaceList, paneList)
-    ? { name: "space.close", args: { id: card.space, confirmed: true } }
-    : { name: "pane.close", args: { pane: card.pane } };
+    ? { title: `Close ${card.project}?`, detail: "It's the last agent in its space, so the space closes too.", command: { name: "space.close", args: { id: card.space, confirmed: true } } }
+    : { title: `Close this ${card.project} agent?`, detail: "Only this agent closes; the rest of its space stays.", command: { name: "pane.close", args: { pane: card.pane } } };
+}
+
+/** The main checkout behind a worktree's git common dir; null for a bare repo, which has none. */
+export function mainCheckout(commonDir) {
+  return commonDir.endsWith("/.git") ? commonDir.slice(0, -5) : null;
+}
+
+export function othersInSpace(card, agentList) {
+  return agentList.filter((a) => a.space === card.space && a.pane !== card.pane).length;
 }
