@@ -1,5 +1,5 @@
 // Worktree dialog: { space, action: "new" | "open" | "remove" } or
-// { folder, machine } for a repo without a space; optional { branch, tab, argv }.
+// { folder, machine } for a repo without a space; optional { branch, tab, argv }, and for remove { keep: command } run by k.
 
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input, Scrollbar } from "gpui-base";
@@ -294,7 +294,7 @@ export default class Worktree extends View {
     }
     if (e.key === "enter" && props()?.action === "remove") return this.go(cx);
     const keep = props()?.keep;
-    if (e.key === "k" && keep && !this.busy) { this.close(); run(keep.name, keep.args); }
+    if (e.keystroke === "k" && keep && !this.busy) { this.close(); run(keep.name, keep.args); }
   }
 
   renderOpen(t) {
@@ -416,7 +416,7 @@ export default class Worktree extends View {
           .text_color(t.dim)
           .gap(6)
           .when(this.busy, (el) => el.child(div().frames(["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"], 90)))
-          .child(this.busy ? "working…" : blocked ? "esc close" : remove ? `↵ remove${props()?.keep ? " · k keep worktree" : ""} · esc cancel` : "↵ create · esc cancel"),
+          .child(this.busy ? "working…" : props()?.keep ? `${blocked ? "" : "↵ remove · "}k close agent only · esc cancel` : blocked ? "esc close" : remove ? "↵ remove · esc cancel" : "↵ create · esc cancel"),
       );
   }
 }
