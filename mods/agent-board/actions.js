@@ -1,5 +1,5 @@
-import { knownAgents, openOverlay, panes, run, setShared, spaces } from "herdr";
-import { keepWorktreeCommand, lastInSpace } from "./cards.js";
+import { exec, knownAgents, openOverlay, panes, run, setShared, spaces } from "herdr";
+import { closePrompt, mainCheckout } from "./cards.js";
 
 export const VIEW = "agent-board.view";
 
@@ -24,18 +24,28 @@ export function showBoard() {
   run("agent-board.grab");
 }
 
-export async function newAgent(spaceId, machine) {
-  run("tab.new", { name: "Claude Code", space: spaceId, argv: await claudeArgv(machine), focus: false });
+async function mainCheckoutOf(card) {
+  const r = await exec("git", ["-C", card.cwd, "rev-parse", "--path-format=absolute", "--git-common-dir"], { on: card.machine }).catch(() => null);
+  return r?.code === 0 ? mainCheckout(r.stdout.trim()) : null;
 }
 
-/** Closes the agent's pane; a worktree, or the space's last agent, asks first. */
+/** Claude in a new tab of the card's repo: a worktree card's agent goes to the main checkout's space. */
+export async function newAgent(card) {
+  const argv = await claudeArgv(card.machine);
+  const main = card.worktree && card.cwd ? await mainCheckoutOf(card) : null;
+  if (!main) return run("tab.new", { name: "Claude Code", space: card.space, argv, focus: false });
+  const home = spaces().find((s) => s.machine === card.machine && s.folder === main);
+  if (home) run("tab.new", { name: "Claude Code", space: home.id, folder: main, argv, focus: false });
+  else run("space.new", { folder: main, machine: card.machine ?? "", argv, focus: false });
+}
+
+/** Closes the agent's pane after asking; in a worktree the question offers removing it too. */
 export function closeCard(card) {
+  const { detail, command } = closePrompt(card, spaces(), panes());
   if (card.worktree) {
-    const keep = keepWorktreeCommand(card, spaces(), panes());
-    return openOverlay({ mod: "worktree-dev", kind: "dialog", width: 460, height: 280, props: { space: card.space, folder: card.cwd, action: "remove", keep } });
+    return openOverlay({ mod: "worktree-dev", kind: "dialog", width: 460, height: 280, props: { space: card.space, folder: card.cwd, action: "remove", keep: command } });
   }
-  if (lastInSpace(card, spaces(), panes())) return openOverlay({ mod: "agent-board", kind: "dialog", width: 420, height: 150, props: { part: "close", space: card.space, name: card.project } });
-  run("pane.close", { pane: card.pane });
+  openOverlay({ mod: "agent-board", kind: "dialog", width: 420, height: 150, props: { part: "close", name: card.project, detail, command } });
 }
 
 export async function newWorktreeAgent(spaceId, folder, machine) {

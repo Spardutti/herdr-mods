@@ -188,11 +188,11 @@ Or open it as a pop-up: **System usage** in the command palette.
 
 A layout with no left sidebar. Each running agent is a card that keeps its place; its color shows **Needs you**, **Done**, **Working** or **Idle**.
 Click a card, or move to it with the arrow keys and press Enter, to open its chat with your tabs and right column. **← Board** takes you back.
-Each card has **+ Agent** (Claude Code in a new tab of that space) and **+ Agent in worktree** (a copy of Herdr's New worktree dialog, `mods/worktree-dev`, then Claude there; a new branch starts from `dev`, else `develop`, `main` or `master`, fetched from origin first).
+Each card has **+ Agent** (Claude Code in a new tab of that space; on a worktree card, in the repo's main checkout) and **+ Agent in worktree** (a copy of Herdr's New worktree dialog, `mods/worktree-dev`, then Claude there; a new branch starts from `dev`, else `develop`, `main` or `master`, fetched from origin first).
 The bar on top filters the cards by status and holds the project search.
 
 Install `mods/agent-board`, `mods/project-search` and `mods/worktree-dev`, then copy `layouts/agent-board.json` into `~/.config/herdr-app/layouts/`.
-Switch to it with `ctrl-shift-l`. Merge `mods/agent-board/keys.json` into yours for its keys there: `f1` goes back to the board, `ctrl-k` opens the project search, `ctrl-p` finds an open agent (type, ↑/↓, Enter), `f9` / `f10` or `alt-left` / `alt-right` open the previous / next card's chat, `f8` or `alt-down` the first one that needs you, and `alt-up` closes the open agent like its chip's ✕ (in a worktree it asks whether to remove the worktree too; for the last agent in its space it asks before closing the space, with ←/→ to choose). Its right column is the one from this repo's mods; change it in the layout to fit yours.
+Switch to it with `ctrl-shift-l`. Merge `mods/agent-board/keys.json` into yours for its keys there: `f1` goes back to the board, `ctrl-k` opens the project search, `ctrl-p` finds an open agent (type, ↑/↓, Enter), `f9` / `f10` or `alt-left` / `alt-right` open the previous / next card's chat, `f8` or `alt-down` the first one that needs you, and `alt-up` closes the open agent like its chip's ✕. Both ask first, with ←/→ to choose; in a worktree the question also offers removing the worktree. Its right column is the one from this repo's mods; change it in the layout to fit yours.
 
 ## project-search
 
