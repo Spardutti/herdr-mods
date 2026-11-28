@@ -83,7 +83,8 @@ export function emptyMessage(total, filter) {
 /** Whether closing the card's pane closes its whole space, which Herdr asks about first. */
 export function lastInSpace(card, spaceList, paneList) {
   const tabs = new Set(spaceList.find((s) => s.id === card.space)?.tabs.map((t) => t.id) ?? []);
-  return paneList.filter((p) => tabs.has(p.tab)).length === 1;
+  const left = paneList.filter((p) => tabs.has(p.tab));
+  return left.length === 1 && left[0].pane === card.pane;
 }
 
 /** What closing the card's agent does, and the words that ask about it. */
@@ -96,8 +97,4 @@ export function closePrompt(card, spaceList, paneList) {
 /** The main checkout behind a worktree's git common dir; null for a bare repo, which has none. */
 export function mainCheckout(commonDir) {
   return commonDir.endsWith("/.git") ? commonDir.slice(0, -5) : null;
-}
-
-export function othersInSpace(card, agentList) {
-  return agentList.filter((a) => a.space === card.space && a.pane !== card.pane).length;
 }

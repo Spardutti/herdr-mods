@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { boardCards, emptyMessage, filterCounts, closePrompt, isWorktree, lastInSpace, mainCheckout, matchCards, othersInSpace, moveSelection, needsYou, nextCard, prevCard } from "./cards.js";
+import { boardCards, emptyMessage, filterCounts, closePrompt, isWorktree, lastInSpace, mainCheckout, matchCards, moveSelection, needsYou, nextCard, prevCard } from "./cards.js";
 
 const agent = (address, status, extra = {}) => ({
   address, status, pane: `p-${address}`, space: "wsl/s1", space_name: "app", title: "", tab_name: "2", seq: 0, ...extra,
@@ -168,7 +168,7 @@ test("mainCheckout of \"/h/app/.git\" is \"/h/app\", and a bare repo's \"/h/app/
   assert.deepEqual([mainCheckout("/h/app/.git"), mainCheckout("/h/app/.bare")], ["/h/app", null]);
 });
 
-test("othersInSpace counts the 2 other agents in space s1 and skips p1 itself and space s2", () => {
-  const agents = [{ pane: "p1", space: "s1" }, { pane: "p2", space: "s1" }, { pane: "p3", space: "s1" }, { pane: "p4", space: "s2" }];
-  assert.equal(othersInSpace({ pane: "p1", space: "s1" }, agents), 2);
+test("lastInSpace is false when card p1 is gone and only p2 is left in s1", () => {
+  const spaces = [{ id: "s1", tabs: [{ id: "t1" }] }];
+  assert.equal(lastInSpace({ pane: "p1", space: "s1" }, spaces, [{ pane: "p2", tab: "t1" }]), false);
 });
