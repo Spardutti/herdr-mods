@@ -83,7 +83,8 @@ export function emptyMessage(total, filter) {
 /** Whether closing the card's pane closes its whole space, which Herdr asks about first. */
 export function lastInSpace(card, spaceList, paneList) {
   const tabs = new Set(spaceList.find((s) => s.id === card.space)?.tabs.map((t) => t.id) ?? []);
-  return paneList.filter((p) => tabs.has(p.tab)).length === 1;
+  const left = paneList.filter((p) => tabs.has(p.tab));
+  return left.length === 1 && left[0].pane === card.pane;
 }
 
 /** What closing the card's agent does, and the words that ask about it. */

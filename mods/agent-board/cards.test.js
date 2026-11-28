@@ -167,3 +167,8 @@ test("closePrompt with a second pane in s1 closes only pane p1", () => {
 test("mainCheckout of \"/h/app/.git\" is \"/h/app\", and a bare repo's \"/h/app/.bare\" has none", () => {
   assert.deepEqual([mainCheckout("/h/app/.git"), mainCheckout("/h/app/.bare")], ["/h/app", null]);
 });
+
+test("lastInSpace is false when card p1 is gone and only p2 is left in s1", () => {
+  const spaces = [{ id: "s1", tabs: [{ id: "t1" }] }];
+  assert.equal(lastInSpace({ pane: "p1", space: "s1" }, spaces, [{ pane: "p2", tab: "t1" }]), false);
+});
